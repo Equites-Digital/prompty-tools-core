@@ -80,7 +80,16 @@ export function normalizeConfig(config: PromptyClientConfig): NormalizedConfig {
   const rawBaseUrl = config.baseUrl ?? PROMPTY_API_BASE_URL;
   const baseUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
-  const fetchImpl = config.fetch ?? globalThis.fetch;
+  // When falling back to the global fetch, bind it to its host. Firefox (and
+  // some Safari versions) throw "TypeError: 'fetch' called on an object that
+  // does not implement interface Window" if `globalThis.fetch` is invoked
+  // without its original `this`. User-supplied fetches are passed through
+  // untouched - they're already in whatever shape the caller wants.
+  const fallbackFetch =
+    typeof globalThis.fetch === "function"
+      ? globalThis.fetch.bind(globalThis)
+      : undefined;
+  const fetchImpl = config.fetch ?? fallbackFetch;
   if (typeof fetchImpl !== "function") {
     throw new PromptyConfigError(
       "fetch is not available in this environment; pass a custom fetch via config.fetch",

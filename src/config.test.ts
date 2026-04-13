@@ -51,9 +51,21 @@ describe("normalizeConfig", () => {
   });
 
   describe("fetch resolution", () => {
-    it("falls back to globalThis.fetch when not provided", () => {
-      const result = normalizeConfig({ apiKey: "pk_1" });
-      expect(result.fetch).toBe(globalThis.fetch);
+    it("falls back to globalThis.fetch when not provided, bound to globalThis", async () => {
+      const spy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response("{}", { status: 200 }));
+      try {
+        const result = normalizeConfig({ apiKey: "pk_1" });
+        // Not the same identity - it's a bound wrapper so Firefox/Safari
+        // don't throw "fetch called on an object that does not implement
+        // interface Window" when invoked from a stored reference.
+        expect(typeof result.fetch).toBe("function");
+        await result.fetch("https://example.com");
+        expect(spy).toHaveBeenCalledTimes(1);
+      } finally {
+        spy.mockRestore();
+      }
     });
 
     it("uses the provided fetch implementation", () => {

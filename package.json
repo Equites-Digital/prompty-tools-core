@@ -1,6 +1,6 @@
 {
   "name": "@prompty-tools/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Typed TypeScript client for the prompty.tools public HTTP API.",
   "keywords": [
     "prompty",
@@ -14,7 +14,7 @@
   ],
   "author": "prompty.tools <info@prompty.tools>",
   "license": "MIT",
-  "homepage": "https://www.prompty.tools",
+  "homepage": "https://npm.prompty.tools",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Equites-Digital/prompty-tools-core.git"

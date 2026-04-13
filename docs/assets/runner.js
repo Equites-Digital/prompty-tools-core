@@ -256,6 +256,14 @@ function formatError(err) {
     const parts = [`${err.name}: ${err.message}`];
     if (err.status !== undefined) parts.push(`  status: ${err.status}`);
     if (err.requestId) parts.push(`  requestId: ${err.requestId}`);
+    if (err.cause !== undefined && err.cause !== null) {
+      const cause = err.cause;
+      const causeMessage =
+        cause instanceof Error
+          ? `${cause.name}: ${cause.message}`
+          : String(cause);
+      parts.push(`  cause: ${causeMessage}`);
+    }
     return parts.join("\n");
   }
   if (err instanceof Error) {

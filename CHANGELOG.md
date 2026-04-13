@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-04-13
+
+### Fixed
+- Bind the fallback `globalThis.fetch` to its host so Firefox and some Safari
+  versions no longer throw `TypeError: 'fetch' called on an object that does
+  not implement interface Window` when the client is invoked from the
+  browser.
+
 ## [0.1.0] - 2026-04-10
 
 ### Added
