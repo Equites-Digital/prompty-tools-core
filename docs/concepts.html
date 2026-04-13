@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Concepts - @prompty-tools/core</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="./index.html" class="logo"><img src="./assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="./index.html">Home</a>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./concepts.html" class="active">Concepts</a>
+          <a href="./api/prompts.html">Prompts</a>
+          <a href="./api/personas.html">Personas</a>
+          <a href="./api/tones.html">Tones</a>
+          <a href="./api/outputs.html">Outputs</a>
+          <a href="./api/constraints.html">Constraints</a>
+          <a href="./api/collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Concepts</h1>
+      <p class="lead">
+        How pagination, errors, hooks, retries, abort signals, and custom fetch
+        work - with runnable demonstrations of each.
+      </p>
+
+      <div class="toc">
+        <strong>On this page</strong>
+        <ul>
+          <li><a href="#pagination">Pagination</a></li>
+          <li><a href="#listAll">Async iteration with listAll()</a></li>
+          <li><a href="#errors">Error handling</a></li>
+          <li><a href="#hooks">Request &amp; response hooks</a></li>
+          <li><a href="#retries">Retries</a></li>
+          <li><a href="#abort">Aborting requests</a></li>
+          <li>
+            <a href="#bring-your-own-fetch">Bringing your own fetch</a>
+          </li>
+        </ul>
+      </div>
+
+      <h2 id="pagination">Pagination</h2>
+      <p>
+        Every <code>list()</code> method returns a
+        <code>Page&lt;T&gt;</code> - a frozen snapshot of the items on the
+        current page plus navigation helpers. Pagination is offset-based: page
+        size must be one of <code>6, 12, 24, 48, 100</code> (the server
+        rejects everything else).
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Walk forward with .next()</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">// Get page 1, then call .next() to fetch page 2.
+let page = await client.prompts.list({ scope: "public", pageSize: 6 });
+console.log(`page ${page.page}: ${page.items.length} items, hasNext=${page.hasNext}`);
+
+if (page.hasNext) {
+  page = await page.next();
+  console.log(`page ${page.page}: ${page.items.length} items, hasPrev=${page.hasPrev}`);
+}
+
+return {
+  currentPage: page.page,
+  pageSize: page.pageSize,
+  total: page.total,
+  hasNext: page.hasNext,
+  hasPrev: page.hasPrev,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <p>
+        Calling <code>.next()</code> on the last page (or
+        <code>.prev()</code> on the first) rejects with a
+        <code>RangeError</code>. Always check <code>hasNext</code> /
+        <code>hasPrev</code> before navigating.
+      </p>
+
+      <h2 id="listAll">Async iteration with <code>listAll()</code></h2>
+      <p>
+        For batch jobs, <code>listAll()</code> is an async iterator that walks
+        every page and yields items one at a time. Pagination is handled for
+        you.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate up to 24 prompts</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const titles = [];
+let count = 0;
+
+for await (const prompt of client.prompts.listAll({ scope: "public", pageSize: 12 })) {
+  titles.push(prompt.title);
+  if (++count >= 24) break;
+}
+
+console.log(`Collected ${titles.length} titles across pages.`);
+return titles;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="errors">Error handling</h2>
+      <p>
+        Every non-2xx response throws a typed subclass of
+        <code>PromptyError</code>. Use <code>instanceof</code> to narrow:
+      </p>
+
+      <pre><code class="language-typescript">PromptyError                  // base class
+├── PromptyConfigError         // bad config (sync, at construction)
+├── PromptyNetworkError        // fetch rejected (DNS, TLS, offline)
+├── PromptyTimeoutError        // request exceeded timeoutMs
+└── PromptyHttpError           // base for non-2xx responses
+    ├── PromptyValidationError // 400
+    ├── PromptyAuthError       // 401
+    ├── PromptyNotFoundError   // 404
+    ├── PromptyRateLimitError  // 429 (carries optional retryAfter)
+    └── PromptyServerError     // 5xx</code></pre>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Catch a 404</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">try {
+  await client.prompts.get("definitely-not-an-id");
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) {
+    console.log("got 404:", err.message, "status=", err.status);
+    return { caught: "PromptyNotFoundError", message: err.message };
+  }
+  if (err instanceof PromptyAuthError) {
+    return { caught: "PromptyAuthError", message: err.message };
+  }
+  if (err instanceof PromptyError) {
+    return { caught: err.name, message: err.message };
+  }
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <p>
+        All errors carry <code>status</code>, optionally
+        <code>requestId</code> (from the <code>x-request-id</code> response
+        header), and the raw <code>response</code>. <code>PromptyRateLimitError</code>
+        additionally exposes <code>retryAfter</code> when the server provided a
+        <code>Retry-After</code> header.
+      </p>
+
+      <h2 id="hooks">Request &amp; response hooks</h2>
+      <p>
+        <code>onRequest</code> fires before every fetch;
+        <code>onResponse</code> fires after every fetch (success or error)
+        with timing data. Both can be sync or async - async hooks are awaited
+        before the request continues. Useful for tracing, logging, metrics.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Trace one request</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">// Build a fresh client with hooks attached, reusing the same API key.
+const traced = [];
+const observed = createPromptyClient({
+  apiKey: localStorage.getItem("prompty-tools-core/api-key") ?? "",
+  onRequest: (ctx) =>
+    traced.push({ phase: "request", method: ctx.method, url: ctx.url }),
+  onResponse: (ctx) =>
+    traced.push({
+      phase: "response",
+      status: ctx.status,
+      ok: ctx.ok,
+      durationMs: ctx.durationMs,
+    }),
+});
+
+await observed.prompts.list({ pageSize: 6 });
+return traced;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="retries">Retries</h2>
+      <p>
+        Retries are <strong>off by default</strong>. When you opt in via
+        <code>maxRetries</code>, only <code>GET</code> requests are retried,
+        and only on <code>429</code> or <code>5xx</code> responses (plus
+        timeouts/network errors are <em>not</em> retried - they're surfaced
+        immediately). Backoff is exponential with jitter, capped at 30
+        seconds.
+      </p>
+
+      <p>
+        Mutations are never retried automatically - there's no idempotency-key
+        protocol on the server, so the client refuses to risk duplicate
+        writes. Wrap mutations in your own retry logic if you need it.
+      </p>
+
+      <pre><code class="language-javascript">import { createPromptyClient } from "@prompty-tools/core";
+
+const client = createPromptyClient({
+  apiKey: process.env.PROMPTY_API_KEY,
+  maxRetries: 3, // GET-only, on 429/5xx
+});</code></pre>
+
+      <h2 id="abort">Aborting requests</h2>
+      <p>
+        Every list method accepts an <code>AbortSignal</code> via
+        <code>params.signal</code>. The detail/mutation methods don't take an
+        explicit signal - for those, configure a client-level
+        <code>timeoutMs</code> instead, or pass a custom
+        <code>fetch</code> that wraps an <code>AbortController</code>.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Abort a list call</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const controller = new AbortController();
+
+// Abort almost immediately - well before the network round-trip completes.
+setTimeout(() => controller.abort(), 1);
+
+try {
+  await client.prompts.list({ scope: "public", signal: controller.signal });
+  return { aborted: false };
+} catch (err) {
+  return { aborted: true, error: `${err.name}: ${err.message}` };
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="bring-your-own-fetch">Bringing your own fetch</h2>
+      <p>
+        Every option is wired through a single <code>fetch</code> seam - pass
+        your own implementation to add tracing, run on edge runtimes with
+        custom request handling, or stub the network in tests:
+      </p>
+
+      <pre><code class="language-typescript">import { createPromptyClient } from "@prompty-tools/core";
+
+const client = createPromptyClient({
+  apiKey: process.env.PROMPTY_API_KEY!,
+  fetch: async (input, init) => {
+    const start = performance.now();
+    const res = await fetch(input, init);
+    const ms = performance.now() - start;
+    metrics.histogram("prompty.latency", ms, { url: String(input) });
+    return res;
+  },
+});</code></pre>
+
+      <p>
+        The default is <code>globalThis.fetch</code>. The same seam is what
+        powers the package's own test suite - there's no MSW or
+        <code>nock</code> involved, just an injected fake <code>fetch</code>.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Wrap fetch with a header injector</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">let captured;
+const wrapped = createPromptyClient({
+  apiKey: localStorage.getItem("prompty-tools-core/api-key") ?? "",
+  fetch: async (input, init) => {
+    const merged = {
+      ...init,
+      headers: { ...init?.headers, "x-prompty-trace": "demo" },
+    };
+    captured = { url: String(input), headers: merged.headers };
+    return fetch(input, merged);
+  },
+});
+
+await wrapped.prompts.list({ pageSize: 6 });
+return captured;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="./assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tones API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <a href="./tones.html" class="active">Tones</a>
+          <a href="./outputs.html">Outputs</a>
+          <a href="./constraints.html">Constraints</a>
+          <a href="./collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Tones</h1>
+      <p class="lead">
+        Tones are short labels (e.g. <em>"playful"</em>, <em>"formal"</em>)
+        that prompts and collections reference. Tones are non-versioned and
+        the server enforces label uniqueness per user. There's no dedicated
+        visibility endpoint - pass <code>isPublic</code> through
+        <code>update()</code> instead.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+        </ul>
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.tones.list(params?: ListParams): Promise&lt;Page&lt;ToneSummary&gt;&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public tones</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.tones.list({ scope: "public", pageSize: 12, sort: "most-upvoted" });
+return {
+  total: page.total,
+  items: page.items.map((t) => ({ id: t.id, label: t.label, tags: t.tags })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.tones.listAll(params?: ListParams): AsyncIterable&lt;ToneSummary&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public tones feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const labels = [];
+for await (const tone of client.tones.listAll({ scope: "public", pageSize: 12 })) {
+  labels.push(tone.label);
+  if (labels.length >= 12) break;
+}
+return labels;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.tones.get(id: string): Promise&lt;Tone&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch a public tone detail</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.tones.list({ scope: "public", pageSize: 6 });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const tone = await client.tones.get(first.id);
+return {
+  id: tone.id,
+  label: tone.label,
+  tags: tone.tags,
+  isPublic: tone.isPublic,
+  upvotes: tone.upvotes,
+  isOwner: tone.isOwner,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.tones.create(input: ToneCreateInput): Promise&lt;ToneCreateResponse&gt;</code>
+      </p>
+      <p>
+        Tone labels must be unique per user. The server returns 400 with
+        <em>"A tone with this label already exists"</em> on collision.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete (with unique label)</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">// Use a timestamp to avoid collisions on repeat runs.
+const label = `docs-demo-tone-${Date.now()}`;
+const created = await client.tones.create({ label, isPublic: false, tags: ["demo"] });
+console.log("created", created);
+await client.tones.delete(created.id);
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.tones.update(id: string, input: ToneUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Updates the label, tags, or visibility. Tones don't have versions -
+        the server overwrites the row directly.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update label + visibility, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.tones.create({
+  label: `docs-demo-tone-${Date.now()}`,
+  isPublic: false,
+});
+
+await client.tones.update(created.id, {
+  label: `docs-demo-tone-updated-${Date.now()}`,
+  tags: ["docs", "updated"],
+  isPublic: true,
+});
+
+const detail = await client.tones.get(created.id);
+
+await client.tones.delete(created.id);
+
+return { label: detail.label, tags: detail.tags, isPublic: detail.isPublic };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.tones.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.tones.create({ label: `docs-demo-tone-${Date.now()}` });
+await client.tones.delete(created.id);
+try {
+  await client.tones.get(created.id);
+  return { deleted: false };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) return { deleted: true };
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.tones.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own tone</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.tones.create({ label: `docs-demo-vote-${Date.now()}` });
+await client.tones.vote(created.id, 1);
+const detail = await client.tones.get(created.id);
+await client.tones.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.tones.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, unvote, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.tones.create({ label: `docs-demo-unvote-${Date.now()}` });
+await client.tones.vote(created.id, -1);
+await client.tones.unvote(created.id);
+const detail = await client.tones.get(created.id);
+await client.tones.delete(created.id);
+return { downvotes: detail.downvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.tones.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, off, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.tones.create({ label: `docs-demo-fav-${Date.now()}` });
+const a = await client.tones.toggleFavorite(created.id);
+const b = await client.tones.toggleFavorite(created.id);
+await client.tones.delete(created.id);
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

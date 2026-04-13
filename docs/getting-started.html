@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getting started - @prompty-tools/core</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="./index.html" class="logo"><img src="./assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="./index.html">Home</a>
+          <a href="./getting-started.html" class="active">Getting started</a>
+          <a href="./concepts.html">Concepts</a>
+          <a href="./api/prompts.html">Prompts</a>
+          <a href="./api/personas.html">Personas</a>
+          <a href="./api/tones.html">Tones</a>
+          <a href="./api/outputs.html">Outputs</a>
+          <a href="./api/constraints.html">Constraints</a>
+          <a href="./api/collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Getting started</h1>
+      <p class="lead">
+        Install the package, generate an API key, and make your first call.
+      </p>
+
+      <div class="toc">
+        <strong>On this page</strong>
+        <ul>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#authenticate">Authenticate</a></li>
+          <li><a href="#first-call">First call</a></li>
+          <li><a href="#client-config">Client configuration</a></li>
+          <li><a href="#typescript">TypeScript</a></li>
+          <li><a href="#runtimes">Supported runtimes</a></li>
+        </ul>
+      </div>
+
+      <h2 id="install">Install</h2>
+      <p>
+        The package is published to npm under the
+        <code>@prompty-tools</code> scope. It targets Node.js 20+ and ships
+        both ESM and CJS builds with TypeScript declarations.
+      </p>
+
+      <pre><code class="language-bash">npm install @prompty-tools/core
+# or
+pnpm add @prompty-tools/core
+# or
+yarn add @prompty-tools/core</code></pre>
+
+      <h2 id="authenticate">Authenticate</h2>
+      <p>
+        Every request needs a Bearer API key starting with <code>pk_</code>.
+        Generate one in your prompty.tools dashboard, then pass it to the
+        client at construction time:
+      </p>
+
+      <pre><code class="language-javascript">import { createPromptyClient } from "@prompty-tools/core";
+
+const client = createPromptyClient({
+  apiKey: process.env.PROMPTY_API_KEY,
+});</code></pre>
+
+      <div class="callout">
+        <strong>For the docs site</strong>
+        Paste your API key into the bar at the top of the page. It's stored in
+        <code>localStorage</code> on this domain and never sent anywhere except
+        <code>www.prompty.tools/api/v1</code> when you click <em>Run</em>.
+      </div>
+
+      <p>
+        The client validates the key shape at construction time and throws
+        <a href="./concepts.html#errors"><code>PromptyConfigError</code></a>
+        synchronously if it's missing or doesn't start with <code>pk_</code>:
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Live example</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">// `createPromptyClient` and the error classes are pre-bound for these examples.
+try {
+  createPromptyClient({ apiKey: "definitely-not-a-key" });
+} catch (err) {
+  if (err instanceof PromptyConfigError) {
+    console.log("config rejected:", err.message);
+    return { rejected: true, message: err.message };
+  }
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="first-call">First call</h2>
+      <p>
+        With a key set, you can hit the API. The example below lists the public
+        feed, six prompts at a time, sorted by upvotes.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Live example</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.prompts.list({
+  scope: "public",
+  sort: "most-upvoted",
+  pageSize: 6,
+});
+
+console.log(`Page ${page.page} of ${Math.ceil(page.total / page.pageSize)}`);
+
+return page.items.map((p) => ({
+  title: p.title,
+  upvotes: p.upvotes,
+  tags: p.tags,
+}));</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="client-config">Client configuration</h2>
+      <p>
+        <code>createPromptyClient</code> accepts the following options:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>apiKey</code> <span class="required">required</span></td>
+            <td><code>string</code></td>
+            <td>-</td>
+            <td>Bearer API key (must start with <code>pk_</code>).</td>
+          </tr>
+          <tr>
+            <td><code>baseUrl</code></td>
+            <td><code>string</code></td>
+            <td><code>https://prompty.tools/api/v1</code></td>
+            <td>Useful for self-hosted or staging environments.</td>
+          </tr>
+          <tr>
+            <td><code>fetch</code></td>
+            <td><code>typeof fetch</code></td>
+            <td><code>globalThis.fetch</code></td>
+            <td>
+              Inject a custom fetch - see
+              <a href="./concepts.html#bring-your-own-fetch"
+                >bring your own fetch</a
+              >.
+            </td>
+          </tr>
+          <tr>
+            <td><code>userAgent</code></td>
+            <td><code>string</code></td>
+            <td><code>@prompty-tools/core/&lt;version&gt;</code></td>
+            <td>Sent on Node-like runtimes; browsers ignore.</td>
+          </tr>
+          <tr>
+            <td><code>timeoutMs</code></td>
+            <td><code>number</code></td>
+            <td><code>30000</code></td>
+            <td>Per-request abort. Use <code>0</code> to disable.</td>
+          </tr>
+          <tr>
+            <td><code>maxRetries</code></td>
+            <td><code>number</code></td>
+            <td><code>0</code></td>
+            <td>
+              GET-only retry on 429/5xx with exponential backoff. See
+              <a href="./concepts.html#retries">retries</a>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>defaultHeaders</code></td>
+            <td><code>Record&lt;string, string&gt;</code></td>
+            <td><code>{}</code></td>
+            <td>Merged into every request.</td>
+          </tr>
+          <tr>
+            <td><code>onRequest</code></td>
+            <td><code>(ctx) =&gt; void | Promise&lt;void&gt;</code></td>
+            <td>-</td>
+            <td>
+              Called before every fetch - useful for tracing/logging.
+            </td>
+          </tr>
+          <tr>
+            <td><code>onResponse</code></td>
+            <td><code>(ctx) =&gt; void | Promise&lt;void&gt;</code></td>
+            <td>-</td>
+            <td>
+              Called after every fetch (success or error) - receives status,
+              duration, and any thrown error.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="typescript">TypeScript</h2>
+      <p>
+        Types are first-class. Every method, every DTO, every error is fully
+        annotated. Inputs and outputs are typed against the actual server
+        contract:
+      </p>
+
+      <pre><code class="language-typescript">import {
+  createPromptyClient,
+  type Prompt,
+  type PromptCreateInput,
+  type Page,
+  type PromptSummary,
+} from "@prompty-tools/core";
+
+const client = createPromptyClient({ apiKey: process.env.PROMPTY_API_KEY! });
+
+const page: Page&lt;PromptSummary&gt; = await client.prompts.list({ scope: "public" });
+const detail: Prompt = await client.prompts.get(page.items[0]!.id);
+
+const input: PromptCreateInput = {
+  title: "Write a haiku",
+  task: "Write a haiku about TypeScript",
+  compiledPrompt: "Write a haiku about TypeScript. Three lines, 5/7/5 syllables.",
+  isPublic: false,
+};
+await client.prompts.create(input);</code></pre>
+
+      <p>
+        DTO arrays are typed as <code>readonly T[]</code>; date fields are ISO
+        8601 strings (<code>"2026-04-13T10:42:00.000Z"</code>) - call
+        <code>new Date(prompt.createdAt)</code> when you want a
+        <code>Date</code>.
+      </p>
+
+      <h2 id="runtimes">Supported runtimes</h2>
+      <ul>
+        <li>Node.js 20+ (uses native <code>fetch</code> and <code>AbortSignal.any</code>)</li>
+        <li>Modern browsers</li>
+        <li>Deno</li>
+        <li>Bun</li>
+        <li>Cloudflare Workers, Vercel Edge, and other edge runtimes</li>
+      </ul>
+
+      <p>
+        For non-standard environments where <code>globalThis.fetch</code>
+        isn't ideal, see
+        <a href="./concepts.html#bring-your-own-fetch">bring your own fetch</a>.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="./assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

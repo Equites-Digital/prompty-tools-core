@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@prompty-tools/core - typed TypeScript client for prompty.tools</title>
+    <meta
+      name="description"
+      content="Documentation and runnable examples for the official @prompty-tools/core npm package."
+    />
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="./index.html" class="logo"><img src="./assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="./index.html" class="active">Home</a>
+          <a href="./getting-started.html">Getting started</a>
+          <a href="./concepts.html">Concepts</a>
+          <a href="./api/prompts.html">Prompts</a>
+          <a href="./api/personas.html">Personas</a>
+          <a href="./api/tones.html">Tones</a>
+          <a href="./api/outputs.html">Outputs</a>
+          <a href="./api/constraints.html">Constraints</a>
+          <a href="./api/collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <section class="hero">
+        <h1>@prompty-tools/core</h1>
+        <p>
+          A typed, zero-dependency TypeScript client for the
+          <a href="https://prompty.tools">prompty.tools</a>
+          <a href="https://api-docs.prompty.tools">public HTTP API</a>.
+          Run every example on this site against your own account.
+        </p>
+      </section>
+
+      <h2 id="quickstart">Quick start</h2>
+      <p>
+        Install the package, paste your API key into the bar above, and run the
+        example below - it lists the most recent public prompts.
+      </p>
+
+      <pre><code class="language-bash">npm install @prompty-tools/core</code></pre>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Live example</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">// Walk the public feed.
+const page = await client.prompts.list({ scope: "public", pageSize: 6 });
+console.log(`Found ${page.total} public prompts.`);
+return page.items.map((p) => ({ id: p.id, title: p.title, tags: p.tags }));</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="features">What's in the box</h2>
+      <div class="feature-grid">
+        <div>
+          <h3>Six resource namespaces</h3>
+          <p>
+            Prompts, personas, tones, outputs, constraints, and collections -
+            covering all 46 v1 endpoints.
+          </p>
+        </div>
+        <div>
+          <h3>Typed end-to-end</h3>
+          <p>
+            Hand-crafted DTOs mirror the server. Inputs, responses, list
+            envelopes, and errors all carry full TypeScript types.
+          </p>
+        </div>
+        <div>
+          <h3>Pagination built-in</h3>
+          <p>
+            <code>list()</code> returns a navigable <code>Page&lt;T&gt;</code>;
+            <code>listAll()</code> walks every page as an async iterator.
+          </p>
+        </div>
+        <div>
+          <h3>Typed errors</h3>
+          <p>
+            <code>PromptyAuthError</code>, <code>PromptyNotFoundError</code>,
+            <code>PromptyRateLimitError</code>… narrow with
+            <code>instanceof</code>.
+          </p>
+        </div>
+        <div>
+          <h3>Bring your own fetch</h3>
+          <p>
+            Inject a custom fetch for Cloudflare Workers, Deno, Bun, or
+            request tracing.
+          </p>
+        </div>
+        <div>
+          <h3>Zero runtime deps</h3>
+          <p>
+            Pure native fetch, URL, AbortSignal. ~22 KB minified. Tree-shakable.
+            Dual ESM + CJS publish.
+          </p>
+        </div>
+      </div>
+
+      <h2 id="next">Where to next</h2>
+      <ul>
+        <li>
+          <a href="./getting-started.html">Getting started</a> - install,
+          authenticate, make your first call.
+        </li>
+        <li>
+          <a href="./concepts.html">Concepts</a> - pagination, error handling,
+          hooks, retries, aborting, and bringing your own fetch.
+        </li>
+        <li>
+          API reference for
+          <a href="./api/prompts.html">prompts</a>,
+          <a href="./api/personas.html">personas</a>,
+          <a href="./api/tones.html">tones</a>,
+          <a href="./api/outputs.html">outputs</a>,
+          <a href="./api/constraints.html">constraints</a>, and
+          <a href="./api/collections.html">collections</a>.
+        </li>
+      </ul>
+
+      <div class="callout">
+        <strong>About the runnable examples</strong>
+        Every code block on this site executes in your browser using
+        <code>@prompty-tools/core</code> against the live API. Your API key is
+        kept in <code>localStorage</code> only - it is never sent anywhere
+        except <code>www.prompty.tools</code>.
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="./assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

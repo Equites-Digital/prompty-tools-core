@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Outputs API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <a href="./tones.html">Tones</a>
+          <a href="./outputs.html" class="active">Outputs</a>
+          <a href="./constraints.html">Constraints</a>
+          <a href="./collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Outputs</h1>
+      <p class="lead">
+        Outputs describe the desired output format / structure (e.g.
+        <em>"JSON"</em>, <em>"Markdown bullet list"</em>) that prompts can
+        reference. Outputs are non-versioned. Like tones, they have no
+        dedicated visibility endpoint - pass <code>isPublic</code> through
+        <code>update()</code>.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+        </ul>
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.outputs.list(params?: ListParams): Promise&lt;Page&lt;OutputSummary&gt;&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public outputs</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.outputs.list({ scope: "public", pageSize: 12 });
+return {
+  total: page.total,
+  items: page.items.map((o) => ({ id: o.id, label: o.label, tags: o.tags })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.outputs.listAll(params?: ListParams): AsyncIterable&lt;OutputSummary&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public outputs feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const labels = [];
+for await (const output of client.outputs.listAll({ scope: "public", pageSize: 12 })) {
+  labels.push(output.label);
+  if (labels.length >= 12) break;
+}
+return labels;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.outputs.get(id: string): Promise&lt;Output&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch a public output detail</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.outputs.list({ scope: "public", pageSize: 6 });
+const first = page.items[0];
+if (!first) return { empty: true };
+const output = await client.outputs.get(first.id);
+return {
+  id: output.id,
+  label: output.label,
+  tags: output.tags,
+  isPublic: output.isPublic,
+  isOwner: output.isOwner,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.outputs.create(input: OutputCreateInput): Promise&lt;OutputCreateResponse&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({
+  label: `docs-demo-output-${Date.now()}`,
+  isPublic: false,
+  tags: ["demo"],
+});
+await client.outputs.delete(created.id);
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.outputs.update(id: string, input: OutputUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>Updates label, tags, or visibility. No versioning.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({ label: `docs-demo-${Date.now()}`, isPublic: false });
+await client.outputs.update(created.id, {
+  label: `docs-demo-updated-${Date.now()}`,
+  tags: ["updated"],
+  isPublic: true,
+});
+const detail = await client.outputs.get(created.id);
+await client.outputs.delete(created.id);
+return { label: detail.label, tags: detail.tags, isPublic: detail.isPublic };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.outputs.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({ label: `docs-demo-${Date.now()}` });
+await client.outputs.delete(created.id);
+try {
+  await client.outputs.get(created.id);
+  return { deleted: false };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) return { deleted: true };
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.outputs.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own output</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({ label: `docs-demo-vote-${Date.now()}` });
+await client.outputs.vote(created.id, 1);
+const detail = await client.outputs.get(created.id);
+await client.outputs.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.outputs.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, unvote, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({ label: `docs-demo-unvote-${Date.now()}` });
+await client.outputs.vote(created.id, 1);
+await client.outputs.unvote(created.id);
+const detail = await client.outputs.get(created.id);
+await client.outputs.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.outputs.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, off, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.outputs.create({ label: `docs-demo-fav-${Date.now()}` });
+const a = await client.outputs.toggleFavorite(created.id);
+const b = await client.outputs.toggleFavorite(created.id);
+await client.outputs.delete(created.id);
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+{
+  "name": "@prompty-tools/core",
+  "version": "0.1.0",
+  "description": "Typed TypeScript client for the prompty.tools public HTTP API.",
+  "keywords": [
+    "prompty",
+    "prompty-tools",
+    "ai",
+    "prompts",
+    "llm",
+    "api-client",
+    "sdk",
+    "typescript"
+  ],
+  "author": "prompty.tools <info@prompty.tools>",
+  "license": "MIT",
+  "homepage": "https://www.prompty.tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Equites-Digital/prompty-tools-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Equites-Digital/prompty-tools-core/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist coverage docs/assets/lib/*.js docs/assets/lib/*.map",
+    "docs:build": "npm run build && node scripts/build-docs.mjs",
+    "docs:serve": "npm run docs:build && npx --yes http-server docs -p 4173 -c-1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:build": "tsc --noEmit -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky",
+    "prepublishOnly": "npm run lint && npm run typecheck:build && npm run test:coverage && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
+    "husky": "^9.1.7",
+    "rimraf": "^6.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+# `files` in package.json is the source of truth for what gets published.
+# This list is defensive - anything here is excluded even if files[] expands.
+
+docs/
+scripts/
+src/
+coverage/
+.github/
+.husky/
+.vscode/
+.idea/
+
+# Configs (already excluded by files[], but listed for clarity)
+tsconfig.json
+tsconfig.build.json
+tsup.config.ts
+vitest.config.ts
+eslint.config.mjs
+.gitignore
+*.log
+*.tsbuildinfo

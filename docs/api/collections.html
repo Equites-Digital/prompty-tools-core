@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Collections API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <a href="./tones.html">Tones</a>
+          <a href="./outputs.html">Outputs</a>
+          <a href="./constraints.html">Constraints</a>
+          <a href="./collections.html" class="active">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Collections</h1>
+      <p class="lead">
+        Collections group <em>tones</em> and <em>constraints</em> into a
+        named bundle (e.g. <em>"Customer support tone of voice"</em>). They
+        are non-versioned, and visibility is set inline through the main
+        <code>update()</code>. Sub-resource endpoints (<code>listConstraints</code>,
+        <code>setConstraints</code>, <code>listTones</code>,
+        <code>setTones</code>) let you manage membership without re-sending
+        the whole collection.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+          <li><a href="#listConstraints">listConstraints</a></li>
+          <li><a href="#setConstraints">setConstraints</a></li>
+          <li><a href="#listTones">listTones</a></li>
+          <li><a href="#setTones">setTones</a></li>
+        </ul>
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.collections.list(params?: ListParams): Promise&lt;Page&lt;CollectionSummary&gt;&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public collections</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.collections.list({ scope: "public", pageSize: 12 });
+return {
+  total: page.total,
+  items: page.items.map((c) => ({ id: c.id, name: c.name, tags: c.tags })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.collections.listAll(params?: ListParams): AsyncIterable&lt;CollectionSummary&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public collections feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const names = [];
+for await (const collection of client.collections.listAll({ scope: "public", pageSize: 12 })) {
+  names.push(collection.name);
+  if (names.length >= 12) break;
+}
+return names;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.collections.get(id: string): Promise&lt;Collection&gt;</code>
+      </p>
+      <p>
+        Detail responses include the constraint and tone items inline (under
+        <code>items</code> and <code>toneItems</code>).
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch a public collection</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.collections.list({ scope: "public", pageSize: 6 });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const collection = await client.collections.get(first.id);
+return {
+  id: collection.id,
+  name: collection.name,
+  description: collection.description,
+  tags: collection.tags,
+  constraintCount: collection.items.length,
+  toneCount: collection.toneItems.length,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.collections.create(input: CollectionCreateInput): Promise&lt;CollectionCreateResponse&gt;</code>
+      </p>
+      <p>
+        Pass <code>constraintIds</code> and/or <code>toneIds</code> to seed
+        the collection with members. Names must be unique per user.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({
+  name: `docs-demo-collection-${Date.now()}`,
+  description: "Created from the docs site.",
+  isPublic: false,
+  tags: ["demo"],
+});
+await client.collections.delete(created.id);
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.collections.update(id: string, input: CollectionUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Updates name, description, tags, or visibility (no separate visibility
+        endpoint).
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({
+  name: `docs-demo-${Date.now()}`,
+  description: "original",
+  isPublic: false,
+});
+await client.collections.update(created.id, {
+  name: `docs-demo-updated-${Date.now()}`,
+  description: "updated",
+  tags: ["updated"],
+  isPublic: true,
+});
+const detail = await client.collections.get(created.id);
+await client.collections.delete(created.id);
+return {
+  name: detail.name,
+  description: detail.description,
+  tags: detail.tags,
+  isPublic: detail.isPublic,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.collections.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({ name: `docs-demo-${Date.now()}` });
+await client.collections.delete(created.id);
+try {
+  await client.collections.get(created.id);
+  return { deleted: false };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) return { deleted: true };
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.collections.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own collection</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({ name: `docs-demo-vote-${Date.now()}` });
+await client.collections.vote(created.id, 1);
+const detail = await client.collections.get(created.id);
+await client.collections.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.collections.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, unvote, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({ name: `docs-demo-unvote-${Date.now()}` });
+await client.collections.vote(created.id, -1);
+await client.collections.unvote(created.id);
+const detail = await client.collections.get(created.id);
+await client.collections.delete(created.id);
+return { downvotes: detail.downvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.collections.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, off, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.collections.create({ name: `docs-demo-fav-${Date.now()}` });
+const a = await client.collections.toggleFavorite(created.id);
+const b = await client.collections.toggleFavorite(created.id);
+await client.collections.delete(created.id);
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listConstraints">listConstraints</h2>
+      <p class="method-sig">
+        <code>client.collections.listConstraints(id: string): Promise&lt;readonly CollectionConstraintRef[]&gt;</code>
+      </p>
+      <p>
+        Returns the constraints currently in the collection. Each item carries
+        the join-row <code>id</code>, the underlying <code>constraintId</code>,
+        and the constraint <code>text</code>.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Build a collection with one constraint, list it, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const constraint = await client.constraints.create({
+  text: `docs-demo-c ${Date.now()}`,
+  isPublic: false,
+});
+const collection = await client.collections.create({
+  name: `docs-demo-coll-${Date.now()}`,
+  isPublic: false,
+  constraintIds: [constraint.id],
+});
+
+const constraintsInCollection = await client.collections.listConstraints(collection.id);
+
+await client.collections.delete(collection.id);
+await client.constraints.delete(constraint.id);
+
+return constraintsInCollection;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="setConstraints">setConstraints</h2>
+      <p class="method-sig">
+        <code>client.collections.setConstraints(id: string, constraintIds: readonly string[]): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Replaces the entire constraint set for the collection - pass an empty
+        array to clear them.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Add, replace, clear, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const c1 = await client.constraints.create({ text: `docs-c1 ${Date.now()}`, isPublic: false });
+const c2 = await client.constraints.create({ text: `docs-c2 ${Date.now()}`, isPublic: false });
+const collection = await client.collections.create({ name: `docs-coll-${Date.now()}`, isPublic: false });
+
+await client.collections.setConstraints(collection.id, [c1.id]);
+const after1 = (await client.collections.listConstraints(collection.id)).length;
+
+await client.collections.setConstraints(collection.id, [c1.id, c2.id]);
+const after2 = (await client.collections.listConstraints(collection.id)).length;
+
+await client.collections.setConstraints(collection.id, []);
+const after3 = (await client.collections.listConstraints(collection.id)).length;
+
+await client.collections.delete(collection.id);
+await client.constraints.delete(c1.id);
+await client.constraints.delete(c2.id);
+
+return { afterFirstSet: after1, afterSecondSet: after2, afterClear: after3 };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listTones">listTones</h2>
+      <p class="method-sig">
+        <code>client.collections.listTones(id: string): Promise&lt;readonly CollectionToneRef[]&gt;</code>
+      </p>
+      <p>
+        Same shape as <code>listConstraints</code> but for the collection's
+        tone items. Each entry carries the join-row <code>id</code>,
+        <code>toneId</code>, and tone <code>label</code>.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Build a collection with one tone, list it, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const tone = await client.tones.create({ label: `docs-tone-${Date.now()}`, isPublic: false });
+const collection = await client.collections.create({
+  name: `docs-coll-${Date.now()}`,
+  isPublic: false,
+  toneIds: [tone.id],
+});
+
+const tonesInCollection = await client.collections.listTones(collection.id);
+
+await client.collections.delete(collection.id);
+await client.tones.delete(tone.id);
+
+return tonesInCollection;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="setTones">setTones</h2>
+      <p class="method-sig">
+        <code>client.collections.setTones(id: string, toneIds: readonly string[]): Promise&lt;void&gt;</code>
+      </p>
+      <p>Replaces the entire tone set for the collection.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Add, replace, clear, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const t1 = await client.tones.create({ label: `docs-t1-${Date.now()}`, isPublic: false });
+const t2 = await client.tones.create({ label: `docs-t2-${Date.now()}`, isPublic: false });
+const collection = await client.collections.create({ name: `docs-coll-${Date.now()}`, isPublic: false });
+
+await client.collections.setTones(collection.id, [t1.id]);
+const after1 = (await client.collections.listTones(collection.id)).length;
+
+await client.collections.setTones(collection.id, [t1.id, t2.id]);
+const after2 = (await client.collections.listTones(collection.id)).length;
+
+await client.collections.setTones(collection.id, []);
+const after3 = (await client.collections.listTones(collection.id)).length;
+
+await client.collections.delete(collection.id);
+await client.tones.delete(t1.id);
+await client.tones.delete(t2.id);
+
+return { afterFirstSet: after1, afterSecondSet: after2, afterClear: after3 };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

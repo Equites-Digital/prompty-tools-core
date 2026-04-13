@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personas API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html" class="active">Personas</a>
+          <a href="./tones.html">Tones</a>
+          <a href="./outputs.html">Outputs</a>
+          <a href="./constraints.html">Constraints</a>
+          <a href="./collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Personas</h1>
+      <p class="lead">
+        Personas describe the speaker / point-of-view that a prompt should
+        adopt. Like prompts, they are versioned - every
+        <code>update()</code> creates a new
+        <code>CustomPersonaVersion</code>. New personas default to
+        <strong>private</strong> on the server (unlike prompts, which default
+        to public).
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#setVisibility">setVisibility</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+          <li><a href="#listVersions">listVersions</a></li>
+          <li><a href="#getVersion">getVersion</a></li>
+        </ul>
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.personas.list(params?: ListParams): Promise&lt;Page&lt;PersonaSummary&gt;&gt;</code>
+      </p>
+      <p>
+        Same shape as <a href="./prompts.html#list"><code>prompts.list</code></a> -
+        accepts <code>page</code>, <code>pageSize</code>, <code>sort</code>,
+        <code>scope</code>, <code>search</code>, <code>tag</code>, and
+        <code>signal</code>.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public personas</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.personas.list({
+  scope: "public",
+  sort: "newest",
+  pageSize: 6,
+});
+
+return {
+  total: page.total,
+  items: page.items.map((p) => ({ id: p.id, title: p.title, tags: p.tags })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.personas.listAll(params?: ListParams): AsyncIterable&lt;PersonaSummary&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const titles = [];
+for await (const persona of client.personas.listAll({ scope: "public", pageSize: 12 })) {
+  titles.push(persona.title);
+  if (titles.length >= 12) break;
+}
+return titles;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.personas.get(id: string): Promise&lt;Persona&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch a public persona detail</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.personas.list({ scope: "public", pageSize: 6 });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const persona = await client.personas.get(first.id);
+return {
+  id: persona.id,
+  title: persona.title,
+  description: persona.description,
+  isPublic: persona.isPublic,
+  isOwner: persona.isOwner,
+  currentVersion: persona.currentVersion,
+  latestVersionId: persona.latestVersionId,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.personas.create(input: PersonaCreateInput): Promise&lt;PersonaCreateResponse&gt;</code>
+      </p>
+      <p>
+        Create a new persona. The response includes the new
+        <code>versionId</code> in addition to the persona id.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({
+  title: "Docs demo persona",
+  description: "An ephemeral persona created from the docs site.",
+  tags: ["demo", "docs"],
+});
+console.log("created", created);
+
+await client.personas.delete(created.id);
+
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.personas.update(id: string, input: PersonaUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>Creates a new persona version. Pass an optional <code>changelog</code>.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({
+  title: "Docs demo: original",
+  description: "Original description.",
+});
+
+await client.personas.update(created.id, {
+  title: "Docs demo: updated",
+  description: "Updated description.",
+  changelog: "Refined wording.",
+});
+
+const detail = await client.personas.get(created.id);
+
+await client.personas.delete(created.id);
+
+return { id: created.id, currentVersion: detail.currentVersion, title: detail.title };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.personas.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({
+  title: "Docs demo: ephemeral",
+  description: "Will be deleted immediately.",
+});
+
+await client.personas.delete(created.id);
+
+try {
+  await client.personas.get(created.id);
+  return { deleted: false };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) {
+    return { deleted: true, status: err.status };
+  }
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="setVisibility">setVisibility</h2>
+      <p class="method-sig">
+        <code>client.personas.setVisibility(id: string, isPublic: boolean): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Personas are private by default - flip to public to make them appear
+        in the public feed.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle visibility, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: visibility", description: "" });
+
+await client.personas.setVisibility(created.id, true);
+const afterPublic = await client.personas.get(created.id);
+
+await client.personas.setVisibility(created.id, false);
+const afterPrivate = await client.personas.get(created.id);
+
+await client.personas.delete(created.id);
+
+return { afterPublic: afterPublic.isPublic, afterPrivate: afterPrivate.isPublic };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.personas.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own persona</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: vote", description: "" });
+await client.personas.vote(created.id, 1);
+const detail = await client.personas.get(created.id);
+await client.personas.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.personas.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, unvote, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: unvote", description: "" });
+await client.personas.vote(created.id, 1);
+await client.personas.unvote(created.id);
+const detail = await client.personas.get(created.id);
+await client.personas.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.personas.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, off, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: favorite", description: "" });
+const a = await client.personas.toggleFavorite(created.id);
+const b = await client.personas.toggleFavorite(created.id);
+await client.personas.delete(created.id);
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listVersions">listVersions</h2>
+      <p class="method-sig">
+        <code>client.personas.listVersions(id: string, params?: VersionListParams): Promise&lt;Page&lt;PersonaVersionSummary&gt;&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, list versions, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: v1", description: "" });
+await client.personas.update(created.id, { title: "Docs demo: v2", description: "v2", changelog: "second" });
+const page = await client.personas.listVersions(created.id, { pageSize: 10 });
+await client.personas.delete(created.id);
+return {
+  total: page.total,
+  versions: page.items.map((v) => ({ version: v.version, title: v.title, changelog: v.changelog })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="getVersion">getVersion</h2>
+      <p class="method-sig">
+        <code>client.personas.getVersion(id: string, versionId: string): Promise&lt;PersonaVersion&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Pull a specific version</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.personas.create({ title: "Docs demo: getVersion", description: "" });
+const versions = await client.personas.listVersions(created.id, { pageSize: 10 });
+const first = versions.items[0];
+const version = await client.personas.getVersion(created.id, first.id);
+await client.personas.delete(created.id);
+return {
+  versionId: version.id,
+  version: version.version,
+  title: version.title,
+  description: version.description,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

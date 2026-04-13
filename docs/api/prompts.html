@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prompts API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html" class="active">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <a href="./tones.html">Tones</a>
+          <a href="./outputs.html">Outputs</a>
+          <a href="./constraints.html">Constraints</a>
+          <a href="./collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Prompts</h1>
+      <p class="lead">
+        Prompts are the core resource: a versioned, taggable instruction
+        record. Every prompt has at least one
+        <code>PromptVersion</code> carrying the editable content
+        (<code>title</code>, <code>task</code>, <code>compiledPrompt</code>,
+        etc.); updates create a new version rather than mutating the previous
+        one.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#setVisibility">setVisibility</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+          <li><a href="#listVersions">listVersions</a></li>
+          <li><a href="#getVersion">getVersion</a></li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <strong>About destructive examples</strong>
+        Examples marked <em>writes to your account</em> create real prompts
+        and clean them up. You'll be prompted to confirm before they run.
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.prompts.list(params?: ListParams): Promise&lt;Page&lt;PromptSummary&gt;&gt;</code>
+      </p>
+      <p>Paginated list of prompts. Returns a navigable <code>Page&lt;T&gt;</code>.</p>
+
+      <h3>Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>page</code></td><td><code>number</code></td><td><code>1</code></td><td>1-based page number.</td></tr>
+          <tr><td><code>pageSize</code></td><td><code>6 | 12 | 24 | 48 | 100</code></td><td><code>12</code></td><td>Items per page (server-enforced enum).</td></tr>
+          <tr><td><code>sort</code></td><td><code>"newest" | "most-upvoted" | "most-favorited"</code></td><td><code>"newest"</code></td><td>Sort order.</td></tr>
+          <tr><td><code>scope</code></td><td><code>"public" | "mine" | "favorites" | "all"</code></td><td><code>"public"</code></td><td>Which prompts to include.</td></tr>
+          <tr><td><code>search</code></td><td><code>string</code></td><td>-</td><td>Full-text search (max 200 chars).</td></tr>
+          <tr><td><code>tag</code></td><td><code>string</code></td><td>-</td><td>Filter by a single tag.</td></tr>
+          <tr><td><code>signal</code></td><td><code>AbortSignal</code></td><td>-</td><td>Abort the request.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public prompts</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.prompts.list({
+  scope: "public",
+  sort: "most-upvoted",
+  pageSize: 6,
+});
+
+return {
+  total: page.total,
+  page: page.page,
+  hasNext: page.hasNext,
+  items: page.items.map((p) => ({ id: p.id, title: p.title, upvotes: p.upvotes })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.prompts.listAll(params?: ListParams): AsyncIterable&lt;PromptSummary&gt;</code>
+      </p>
+      <p>
+        Async iterator that walks every page automatically. Use
+        <code>for await</code>; <code>break</code> stops further requests.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const titles = [];
+for await (const prompt of client.prompts.listAll({ scope: "public", pageSize: 12 })) {
+  titles.push(prompt.title);
+  if (titles.length >= 12) break; // stop early - don't drain everything
+}
+return titles;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.prompts.get(id: string): Promise&lt;Prompt&gt;</code>
+      </p>
+      <p>
+        Fetch the full <code>Prompt</code> by id. Throws
+        <code>PromptyNotFoundError</code> on 404.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch one of the top public prompts</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.prompts.list({ scope: "public", pageSize: 6, sort: "most-upvoted" });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const prompt = await client.prompts.get(first.id);
+return {
+  id: prompt.id,
+  title: prompt.title,
+  task: prompt.task.slice(0, 120) + (prompt.task.length > 120 ? "…" : ""),
+  tags: prompt.tags,
+  isPublic: prompt.isPublic,
+  isOwner: prompt.isOwner,
+  currentVersion: prompt.currentVersion,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.prompts.create(input: PromptCreateInput): Promise&lt;PromptCreateResponse&gt;</code>
+      </p>
+      <p>
+        Create a new prompt. The response is narrower than
+        <code>Prompt</code> - it only carries the row identifiers
+        (<code>id</code>, <code>userId</code>, <code>isPublic</code>, etc.)
+        because the title/task/compiledPrompt live on the version row. Call
+        <code>get(response.id)</code> if you need the full record.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: greet a colleague",
+  task: "Write a friendly greeting for a colleague.",
+  compiledPrompt: "Write a friendly greeting for a colleague joining the team.",
+  description: "Created from the @prompty-tools/core docs site.",
+  isPublic: false,
+  tags: ["demo", "docs"],
+});
+console.log("created", created.id);
+
+// Clean up so we don't leave docs litter in your account.
+await client.prompts.delete(created.id);
+console.log("cleaned up", created.id);
+
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.prompts.update(id: string, input: PromptUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Create a new version of the prompt. Every field is required (the
+        server snapshots a complete version), and a non-empty
+        <code>changelog</code> is mandatory.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: original",
+  task: "Original task.",
+  compiledPrompt: "Original compiled prompt.",
+  isPublic: false,
+});
+
+await client.prompts.update(created.id, {
+  title: "Docs demo: updated",
+  task: "Updated task.",
+  compiledPrompt: "Updated compiled prompt.",
+  changelog: "Refined wording.",
+});
+
+const detail = await client.prompts.get(created.id);
+console.log("currentVersion =", detail.currentVersion);
+
+await client.prompts.delete(created.id);
+
+return { id: created.id, currentVersion: detail.currentVersion, title: detail.title };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.prompts.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Permanently delete a prompt and all of its versions. Resolves with
+        <code>void</code>.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: ephemeral",
+  task: "Will be deleted immediately.",
+  compiledPrompt: "Ephemeral prompt.",
+  isPublic: false,
+});
+
+await client.prompts.delete(created.id);
+
+// Confirm deletion: GET should now 404.
+try {
+  await client.prompts.get(created.id);
+  return { deleted: false, note: "Still found?" };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) {
+    return { deleted: true, status: err.status };
+  }
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="setVisibility">setVisibility</h2>
+      <p class="method-sig">
+        <code>client.prompts.setVisibility(id: string, isPublic: boolean): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Toggle whether a prompt is publicly visible. Backed by the dedicated
+        <code>PATCH /prompts/{id}/visibility</code> endpoint.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Flip a private prompt to public, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: visibility toggle",
+  task: "Demo.",
+  compiledPrompt: "Demo.",
+  isPublic: false,
+});
+
+await client.prompts.setVisibility(created.id, true);
+const afterPublic = await client.prompts.get(created.id);
+
+await client.prompts.setVisibility(created.id, false);
+const afterPrivate = await client.prompts.get(created.id);
+
+await client.prompts.delete(created.id);
+
+return {
+  afterPublic: afterPublic.isPublic,
+  afterPrivate: afterPrivate.isPublic,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.prompts.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+      <p>Upvote (<code>1</code>) or downvote (<code>-1</code>) a prompt.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own prompt then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: vote target",
+  task: "Demo.",
+  compiledPrompt: "Demo.",
+  isPublic: false,
+});
+
+await client.prompts.vote(created.id, 1);
+const detail = await client.prompts.get(created.id);
+
+await client.prompts.delete(created.id);
+
+return { upvotes: detail.upvotes, downvotes: detail.downvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.prompts.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Remove the caller's vote (sends <code>{ value: null }</code> to the
+        same endpoint). Idempotent - calling it without a prior vote is a
+        no-op.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, then unvote, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: unvote",
+  task: "Demo.",
+  compiledPrompt: "Demo.",
+  isPublic: false,
+});
+
+await client.prompts.vote(created.id, 1);
+const afterVote = await client.prompts.get(created.id);
+
+await client.prompts.unvote(created.id);
+const afterUnvote = await client.prompts.get(created.id);
+
+await client.prompts.delete(created.id);
+
+return {
+  afterVote: { upvotes: afterVote.upvotes, userVote: afterVote.userVote },
+  afterUnvote: { upvotes: afterUnvote.upvotes, userVote: afterUnvote.userVote },
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.prompts.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+      <p>
+        Flip the favorite state. The endpoint is a true toggle on the server -
+        there is no <em>set-favorite-to-X</em> form. The response tells you
+        the resulting state.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, toggle off, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: favorite toggle",
+  task: "Demo.",
+  compiledPrompt: "Demo.",
+  isPublic: false,
+});
+
+const a = await client.prompts.toggleFavorite(created.id);
+const b = await client.prompts.toggleFavorite(created.id);
+
+await client.prompts.delete(created.id);
+
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listVersions">listVersions</h2>
+      <p class="method-sig">
+        <code>client.prompts.listVersions(id: string, params?: VersionListParams): Promise&lt;Page&lt;PromptVersionSummary&gt;&gt;</code>
+      </p>
+      <p>
+        Paginated list of versions for a prompt. Page sizes are
+        <code>10 | 20 | 50</code> (different from the main list endpoints).
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update twice, list versions, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: v1",
+  task: "v1 task.",
+  compiledPrompt: "v1.",
+  isPublic: false,
+});
+
+await client.prompts.update(created.id, {
+  title: "Docs demo: v2",
+  task: "v2 task.",
+  compiledPrompt: "v2.",
+  changelog: "Second iteration.",
+});
+
+const page = await client.prompts.listVersions(created.id, { pageSize: 10 });
+
+await client.prompts.delete(created.id);
+
+return {
+  total: page.total,
+  versions: page.items.map((v) => ({ version: v.version, title: v.title, changelog: v.changelog })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="getVersion">getVersion</h2>
+      <p class="method-sig">
+        <code>client.prompts.getVersion(id: string, versionId: string): Promise&lt;PromptVersion&gt;</code>
+      </p>
+      <p>Fetch a specific version of a prompt by its version-row id.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Pull a specific version</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.prompts.create({
+  title: "Docs demo: getVersion",
+  task: "Original.",
+  compiledPrompt: "Original.",
+  isPublic: false,
+});
+
+const versions = await client.prompts.listVersions(created.id, { pageSize: 10 });
+const first = versions.items[0];
+if (!first) {
+  await client.prompts.delete(created.id);
+  return { error: "no versions found" };
+}
+
+const version = await client.prompts.getVersion(created.id, first.id);
+
+await client.prompts.delete(created.id);
+
+return {
+  versionId: version.id,
+  version: version.version,
+  title: version.title,
+  task: version.task,
+  changelog: version.changelog,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

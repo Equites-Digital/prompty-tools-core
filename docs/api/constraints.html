@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Constraints API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <a href="./tones.html">Tones</a>
+          <a href="./outputs.html">Outputs</a>
+          <a href="./constraints.html" class="active">Constraints</a>
+          <a href="./collections.html">Collections</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Constraints</h1>
+      <p class="lead">
+        Constraints are short rules (e.g. <em>"avoid jargon"</em>,
+        <em>"no more than 200 words"</em>) that prompts and collections can
+        reference. The content field is <code>text</code> (not
+        <code>label</code>), capped at 300 chars. Non-versioned, no dedicated
+        visibility endpoint.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+        </ul>
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.constraints.list(params?: ListParams): Promise&lt;Page&lt;ConstraintSummary&gt;&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public constraints</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.constraints.list({ scope: "public", pageSize: 12 });
+return {
+  total: page.total,
+  items: page.items.map((c) => ({ id: c.id, text: c.text, tags: c.tags })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.constraints.listAll(params?: ListParams): AsyncIterable&lt;ConstraintSummary&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public constraints feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const items = [];
+for await (const constraint of client.constraints.listAll({ scope: "public", pageSize: 12 })) {
+  items.push(constraint.text);
+  if (items.length >= 12) break;
+}
+return items;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.constraints.get(id: string): Promise&lt;Constraint&gt;</code>
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch a public constraint detail</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.constraints.list({ scope: "public", pageSize: 6 });
+const first = page.items[0];
+if (!first) return { empty: true };
+const constraint = await client.constraints.get(first.id);
+return {
+  id: constraint.id,
+  text: constraint.text,
+  tags: constraint.tags,
+  isPublic: constraint.isPublic,
+  isOwner: constraint.isOwner,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.constraints.create(input: ConstraintCreateInput): Promise&lt;ConstraintCreateResponse&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({
+  text: `docs-demo: stay positive ${Date.now()}`,
+  isPublic: false,
+  tags: ["demo"],
+});
+await client.constraints.delete(created.id);
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.constraints.update(id: string, input: ConstraintUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({
+  text: `docs-demo: original ${Date.now()}`,
+  isPublic: false,
+});
+await client.constraints.update(created.id, {
+  text: `docs-demo: updated ${Date.now()}`,
+  tags: ["updated"],
+  isPublic: true,
+});
+const detail = await client.constraints.get(created.id);
+await client.constraints.delete(created.id);
+return { text: detail.text, tags: detail.tags, isPublic: detail.isPublic };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.constraints.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({ text: `docs-demo ${Date.now()}` });
+await client.constraints.delete(created.id);
+try {
+  await client.constraints.get(created.id);
+  return { deleted: false };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) return { deleted: true };
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.constraints.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own constraint</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({ text: `docs-demo-vote ${Date.now()}` });
+await client.constraints.vote(created.id, 1);
+const detail = await client.constraints.get(created.id);
+await client.constraints.delete(created.id);
+return { upvotes: detail.upvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.constraints.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, unvote, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({ text: `docs-demo-unvote ${Date.now()}` });
+await client.constraints.vote(created.id, -1);
+await client.constraints.unvote(created.id);
+const detail = await client.constraints.get(created.id);
+await client.constraints.delete(created.id);
+return { downvotes: detail.downvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.constraints.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, off, clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.constraints.create({ text: `docs-demo-fav ${Date.now()}` });
+const a = await client.constraints.toggleFavorite(created.id);
+const b = await client.constraints.toggleFavorite(created.id);
+await client.constraints.delete(created.id);
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>
