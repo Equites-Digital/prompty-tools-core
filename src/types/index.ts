@@ -56,11 +56,12 @@ export type {
 } from "./constraint.js";
 
 export type {
-  Collection,
   CollectionSummary,
   CollectionCreateInput,
   CollectionUpdateInput,
   CollectionCreateResponse,
-  CollectionConstraintRef,
-  CollectionToneRef,
+  ToneCollection,
+  ConstraintCollection,
+  ToneCollectionItem,
+  ConstraintCollectionItem,
 } from "./collection.js";

@@ -6,7 +6,7 @@ import { createMockFetch } from "./test-utils/fake-fetch.js";
 import { makeJsonResponse } from "./test-utils/responses.js";
 
 describe("createPromptyClient", () => {
-  it("returns a client with all six resource namespaces", () => {
+  it("returns a client with all five resource namespaces and nested collections", () => {
     const fetchImpl = createMockFetch([]);
     const client = createPromptyClient({
       apiKey: "pk_test",
@@ -15,9 +15,10 @@ describe("createPromptyClient", () => {
     expect(client.prompts).toBeDefined();
     expect(client.personas).toBeDefined();
     expect(client.tones).toBeDefined();
+    expect(client.tones.collections).toBeDefined();
     expect(client.outputs).toBeDefined();
     expect(client.constraints).toBeDefined();
-    expect(client.collections).toBeDefined();
+    expect(client.constraints.collections).toBeDefined();
   });
 
   it("throws PromptyConfigError on invalid config", () => {
