@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-29
+
+### Changed
+- **Breaking:** Collections are now scoped per building block. The flat
+  `client.collections` namespace has been removed and replaced with
+  `client.tones.collections` and `client.constraints.collections`, mirroring
+  the platform's `/api/v1/{tones,constraints}/collections` URL hierarchy.
+- A collection now holds a single `items` array of one type (tones or
+  constraints) instead of the previous mixed `items` + `toneItems` shape.
+  Item management uses the uniform `listItems(id)` / `setItems(id, itemIds)`
+  pair (replacing `listConstraints` / `setConstraints` / `listTones` /
+  `setTones`).
+- `CollectionCreateInput` now accepts a single `itemIds` field instead of
+  separate `constraintIds` / `toneIds`.
+- `CollectionSummary` now includes `description` and `itemCount` (returned
+  by the platform but previously dropped from the typed surface).
+
+### Removed
+- `Collection`, `CollectionConstraintRef`, `CollectionToneRef`, and
+  `CollectionsResource` types. Replaced by `ToneCollection`,
+  `ConstraintCollection`, `ToneCollectionItem`, `ConstraintCollectionItem`,
+  `ToneCollectionsResource`, and `ConstraintCollectionsResource`.
+
+### Fixed
+- The previous `client.collections.*` calls targeted `/api/v1/collections/*`,
+  which does not exist on the platform; every call returned 404. The new
+  scoped resources hit the real endpoints under `/api/v1/tones/collections`
+  and `/api/v1/constraints/collections`.
+
 ## [0.1.1] - 2026-04-13
 
 ### Fixed

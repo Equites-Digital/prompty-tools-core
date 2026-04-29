@@ -9,6 +9,10 @@ import type {
   ConstraintUpdateInput,
 } from "../types/constraint.js";
 import type { Page } from "../types/page.js";
+import {
+  constraintCollectionsResource,
+  type ConstraintCollectionsResource,
+} from "./constraint-collections.js";
 
 export interface ConstraintsResource {
   list(params?: ListParams): Promise<Page<ConstraintSummary>>;
@@ -20,6 +24,7 @@ export interface ConstraintsResource {
   vote(id: string, value: VoteValue): Promise<void>;
   unvote(id: string): Promise<void>;
   toggleFavorite(id: string): Promise<{ favorited: boolean }>;
+  readonly collections: ConstraintCollectionsResource;
 }
 
 export function constraintsResource(http: Http): ConstraintsResource {
@@ -64,5 +69,6 @@ export function constraintsResource(http: Http): ConstraintsResource {
         "PUT",
         `/constraints/${encodeURIComponent(id)}/favorite`,
       ),
+    collections: constraintCollectionsResource(http),
   };
 }

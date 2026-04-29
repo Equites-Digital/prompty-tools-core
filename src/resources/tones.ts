@@ -9,6 +9,10 @@ import type {
   ToneSummary,
   ToneUpdateInput,
 } from "../types/tone.js";
+import {
+  toneCollectionsResource,
+  type ToneCollectionsResource,
+} from "./tone-collections.js";
 
 export interface TonesResource {
   list(params?: ListParams): Promise<Page<ToneSummary>>;
@@ -20,6 +24,7 @@ export interface TonesResource {
   vote(id: string, value: VoteValue): Promise<void>;
   unvote(id: string): Promise<void>;
   toggleFavorite(id: string): Promise<{ favorited: boolean }>;
+  readonly collections: ToneCollectionsResource;
 }
 
 export function tonesResource(http: Http): TonesResource {
@@ -61,5 +66,6 @@ export function tonesResource(http: Http): TonesResource {
         "PUT",
         `/tones/${encodeURIComponent(id)}/favorite`,
       ),
+    collections: toneCollectionsResource(http),
   };
 }

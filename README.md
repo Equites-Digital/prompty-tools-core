@@ -43,16 +43,26 @@ The key is required and validated synchronously - a missing or malformed key thr
 
 The client exposes one namespace per resource:
 
-| Namespace              | Covers                                                      |
-| ---------------------- | ----------------------------------------------------------- |
-| `client.prompts`       | Prompts (versioned) - list, get, create, update, versions   |
-| `client.personas`      | Personas (versioned)                                        |
-| `client.tones`         | Tones                                                       |
-| `client.outputs`       | Outputs                                                     |
-| `client.constraints`   | Constraints                                                 |
-| `client.collections`   | Collections (groups of tones and constraints)               |
+| Namespace                          | Covers                                                            |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `client.prompts`                   | Prompts (versioned) - list, get, create, update, versions         |
+| `client.personas`                  | Personas (versioned)                                              |
+| `client.tones`                     | Tones                                                             |
+| `client.tones.collections`         | Tone collections (groups of tones)                                |
+| `client.outputs`                   | Outputs                                                           |
+| `client.constraints`               | Constraints                                                       |
+| `client.constraints.collections`   | Constraint collections (groups of constraints)                    |
 
-All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`.
+All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members.
+
+```ts
+const myToneCollections = await client.tones.collections.list({ scope: "mine" });
+const collection = await client.tones.collections.create({
+  name: "Friendly voices",
+  itemIds: ["tone_id_1", "tone_id_2"],
+});
+await client.tones.collections.setItems(collection.id, ["tone_id_3"]);
+```
 
 ## Error handling
 

@@ -34,18 +34,18 @@ export type { PersonasResource } from "./resources/personas.js";
 export type { TonesResource } from "./resources/tones.js";
 export type { OutputsResource } from "./resources/outputs.js";
 export type { ConstraintsResource } from "./resources/constraints.js";
-export type { CollectionsResource } from "./resources/collections.js";
+export type { ToneCollectionsResource } from "./resources/tone-collections.js";
+export type { ConstraintCollectionsResource } from "./resources/constraint-collections.js";
 
 export type {
   ApiPageSize,
-  Collection,
-  CollectionConstraintRef,
   CollectionCreateInput,
   CollectionCreateResponse,
   CollectionSummary,
-  CollectionToneRef,
   CollectionUpdateInput,
   Constraint,
+  ConstraintCollection,
+  ConstraintCollectionItem,
   ConstraintCreateInput,
   ConstraintCreateResponse,
   ConstraintSummary,
@@ -75,6 +75,8 @@ export type {
   Scope,
   Sort,
   Tone,
+  ToneCollection,
+  ToneCollectionItem,
   ToneCreateInput,
   ToneCreateResponse,
   ToneSummary,
