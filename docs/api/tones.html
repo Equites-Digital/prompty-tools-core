@@ -20,10 +20,16 @@
           <a href="../concepts.html">Concepts</a>
           <a href="./prompts.html">Prompts</a>
           <a href="./personas.html">Personas</a>
-          <a href="./tones.html" class="active">Tones</a>
+          <span class="nav-group">
+            <a href="./tones.html" class="active">Tones</a>
+            <a href="./tone-collections.html" class="sub-nav-link">Collections</a>
+          </span>
           <a href="./outputs.html">Outputs</a>
-          <a href="./constraints.html">Constraints</a>
-          <a href="./collections.html">Collections</a>
+          <span class="nav-group">
+            <a href="./constraints.html">Constraints</a>
+            <a href="./constraint-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./libraries.html">Libraries</a>
         </nav>
       </div>
     </header>
@@ -48,10 +54,18 @@
       <h1>Tones</h1>
       <p class="lead">
         Tones are short labels (e.g. <em>"playful"</em>, <em>"formal"</em>)
-        that prompts and collections reference. Tones are non-versioned and
-        the server enforces label uniqueness per user. There's no dedicated
-        visibility endpoint - pass <code>isPublic</code> through
-        <code>update()</code> instead.
+        that prompts can reference, and that
+        <a href="./tone-collections.html">tone collections</a> can group.
+        Tones are non-versioned and the server enforces label uniqueness per
+        user. There's no dedicated visibility endpoint - pass
+        <code>isPublic</code> through <code>update()</code> instead.
+      </p>
+      <p>
+        Tone collections live under <code>client.tones.collections</code>
+        (the platform exposes them at
+        <code>/api/v1/tones/collections</code>). See the
+        <a href="./tone-collections.html">tone collections page</a> for that
+        sub-resource.
       </p>
 
       <div class="toc">

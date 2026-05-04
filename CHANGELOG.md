@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- First-class `client.libraries` namespace covering every documented Libraries
+  endpoint: `list`, `listAll`, `get`, `create`, `update`, `delete`, `vote`,
+  `unvote`, `toggleFavorite`, `listPrompts`, `listAllPrompts`, `addPrompt`,
+  `removePrompt`. Mirrors the platform's `/api/v1/libraries` and
+  `/api/v1/libraries/{id}/prompts` endpoints.
+- New types: `Library`, `LibrarySummary`, `LibraryMemberPrompt`,
+  `LibraryCreateInput`, `LibraryUpdateInput`, `LibraryCreateResponse`, and
+  `LibrariesResource`.
+
 ## [0.2.0] - 2026-04-29
 
 ### Changed

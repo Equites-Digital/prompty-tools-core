@@ -52,8 +52,9 @@ The client exposes one namespace per resource:
 | `client.outputs`                   | Outputs                                                           |
 | `client.constraints`               | Constraints                                                       |
 | `client.constraints.collections`   | Constraint collections (groups of constraints)                    |
+| `client.libraries`                 | Libraries (groups of prompts)                                     |
 
-All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members.
+All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members. Libraries additionally support `.listPrompts(id)`, `.listAllPrompts(id)`, `.addPrompt(id, promptId)`, and `.removePrompt(id, promptId)` to manage their members.
 
 ```ts
 const myToneCollections = await client.tones.collections.list({ scope: "mine" });
@@ -62,6 +63,14 @@ const collection = await client.tones.collections.create({
   itemIds: ["tone_id_1", "tone_id_2"],
 });
 await client.tones.collections.setItems(collection.id, ["tone_id_3"]);
+
+const library = await client.libraries.create({
+  name: "Onboarding prompts",
+  description: "Curated prompts for new hires",
+});
+await client.libraries.addPrompt(library.id, "prompt_id_1");
+const memberPage = await client.libraries.listPrompts(library.id, { pageSize: 24 });
+console.log(memberPage.items.map((p) => p.title));
 ```
 
 ## Error handling

@@ -20,10 +20,16 @@
           <a href="../concepts.html">Concepts</a>
           <a href="./prompts.html">Prompts</a>
           <a href="./personas.html">Personas</a>
-          <a href="./tones.html">Tones</a>
+          <span class="nav-group">
+            <a href="./tones.html">Tones</a>
+            <a href="./tone-collections.html" class="sub-nav-link">Collections</a>
+          </span>
           <a href="./outputs.html">Outputs</a>
-          <a href="./constraints.html" class="active">Constraints</a>
-          <a href="./collections.html">Collections</a>
+          <span class="nav-group">
+            <a href="./constraints.html" class="active">Constraints</a>
+            <a href="./constraint-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./libraries.html">Libraries</a>
         </nav>
       </div>
     </header>
@@ -48,10 +54,18 @@
       <h1>Constraints</h1>
       <p class="lead">
         Constraints are short rules (e.g. <em>"avoid jargon"</em>,
-        <em>"no more than 200 words"</em>) that prompts and collections can
-        reference. The content field is <code>text</code> (not
-        <code>label</code>), capped at 300 chars. Non-versioned, no dedicated
-        visibility endpoint.
+        <em>"no more than 200 words"</em>) that prompts can reference, and
+        that
+        <a href="./constraint-collections.html">constraint collections</a> can
+        group. The content field is <code>text</code> (not <code>label</code>),
+        capped at 300 chars. Non-versioned, no dedicated visibility endpoint.
+      </p>
+      <p>
+        Constraint collections live under
+        <code>client.constraints.collections</code> (the platform exposes them
+        at <code>/api/v1/constraints/collections</code>). See the
+        <a href="./constraint-collections.html">constraint collections page</a>
+        for that sub-resource.
       </p>
 
       <div class="toc">

@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Libraries API - @prompty-tools/core</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a href="../index.html" class="logo"><img src="../assets/logo.png" alt="Prompty logo" class="logo-img" width="28" height="28" /><span>@prompty-tools/core</span></a>
+        <nav class="site-nav">
+          <a href="../index.html">Home</a>
+          <a href="../getting-started.html">Getting started</a>
+          <a href="../concepts.html">Concepts</a>
+          <a href="./prompts.html">Prompts</a>
+          <a href="./personas.html">Personas</a>
+          <span class="nav-group">
+            <a href="./tones.html">Tones</a>
+            <a href="./tone-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./outputs.html">Outputs</a>
+          <span class="nav-group">
+            <a href="./constraints.html">Constraints</a>
+            <a href="./constraint-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./libraries.html" class="active">Libraries</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="api-key-bar">
+      <div class="api-key-bar-inner">
+        <label for="api-key-input">API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="pk_…"
+        />
+        <button id="api-key-save">Save</button>
+        <button id="api-key-clear" class="ghost">Clear</button>
+        <span id="api-key-status" class="api-key-status"></span>
+      </div>
+    </div>
+
+    <main>
+      <h1>Libraries</h1>
+      <p class="lead">
+        Libraries are top-level groups of prompts. A library has its own
+        identity, engagement (votes, favorites, comments), tags, and visibility
+        independent of the prompts it contains. Use libraries to curate
+        collections of prompts for a workflow, an audience, or yourself; share
+        the library publicly while keeping its members' visibility unchanged.
+      </p>
+
+      <div class="toc">
+        <strong>Methods</strong>
+        <ul>
+          <li><a href="#list">list</a></li>
+          <li><a href="#listAll">listAll</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#create">create</a></li>
+          <li><a href="#update">update</a></li>
+          <li><a href="#delete">delete</a></li>
+          <li><a href="#vote">vote</a></li>
+          <li><a href="#unvote">unvote</a></li>
+          <li><a href="#toggleFavorite">toggleFavorite</a></li>
+          <li><a href="#listPrompts">listPrompts</a></li>
+          <li><a href="#listAllPrompts">listAllPrompts</a></li>
+          <li><a href="#addPrompt">addPrompt</a></li>
+          <li><a href="#removePrompt">removePrompt</a></li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <strong>About destructive examples</strong>
+        Examples marked <em>writes to your account</em> create real libraries
+        and prompts and clean them up. You'll be prompted to confirm before
+        they run.
+      </div>
+
+      <h2 id="list">list</h2>
+      <p class="method-sig">
+        <code>client.libraries.list(params?: ListParams): Promise&lt;Page&lt;LibrarySummary&gt;&gt;</code>
+      </p>
+      <p>Paginated list of libraries. Returns a navigable <code>Page&lt;T&gt;</code>.</p>
+
+      <h3>Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>page</code></td><td><code>number</code></td><td><code>1</code></td><td>1-based page number.</td></tr>
+          <tr><td><code>pageSize</code></td><td><code>6 | 12 | 24 | 48 | 100</code></td><td><code>12</code></td><td>Items per page (server-enforced enum).</td></tr>
+          <tr><td><code>sort</code></td><td><code>"newest" | "most-upvoted" | "most-favorited"</code></td><td><code>"newest"</code></td><td>Sort order.</td></tr>
+          <tr><td><code>scope</code></td><td><code>"public" | "mine" | "favorites" | "all"</code></td><td><code>"public"</code></td><td>Which libraries to include.</td></tr>
+          <tr><td><code>search</code></td><td><code>string</code></td><td>-</td><td>Full-text search (max 200 chars). Supports <code>tag:&lt;name&gt;</code> tokens for tag filtering.</td></tr>
+          <tr><td><code>signal</code></td><td><code>AbortSignal</code></td><td>-</td><td>Abort the request.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">List public libraries</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.libraries.list({
+  scope: "public",
+  sort: "most-favorited",
+  pageSize: 6,
+});
+
+return {
+  total: page.total,
+  page: page.page,
+  hasNext: page.hasNext,
+  items: page.items.map((l) => ({
+    id: l.id,
+    name: l.name,
+    promptCount: l.promptCount,
+    favoritesCount: l.favoritesCount,
+  })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAll">listAll</h2>
+      <p class="method-sig">
+        <code>client.libraries.listAll(params?: ListParams): AsyncIterable&lt;LibrarySummary&gt;</code>
+      </p>
+      <p>
+        Async iterator that walks every page automatically. Use
+        <code>for await</code>; <code>break</code> stops further requests.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate the public feed</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const names = [];
+for await (const library of client.libraries.listAll({ scope: "public", pageSize: 12 })) {
+  names.push(library.name);
+  if (names.length >= 12) break;
+}
+return names;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="get">get</h2>
+      <p class="method-sig">
+        <code>client.libraries.get(id: string): Promise&lt;Library&gt;</code>
+      </p>
+      <p>
+        Fetch the full <code>Library</code> by id. Throws
+        <code>PromptyNotFoundError</code> on 404.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Fetch one of the top public libraries</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.libraries.list({ scope: "public", pageSize: 6, sort: "most-favorited" });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const library = await client.libraries.get(first.id);
+return {
+  id: library.id,
+  name: library.name,
+  description: library.description.slice(0, 120) + (library.description.length > 120 ? "…" : ""),
+  tags: library.tags,
+  isPublic: library.isPublic,
+  isOwner: library.isOwner,
+  promptCount: library.promptCount,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="create">create</h2>
+      <p class="method-sig">
+        <code>client.libraries.create(input: LibraryCreateInput): Promise&lt;LibraryCreateResponse&gt;</code>
+      </p>
+      <p>
+        Create a new library. The response is narrower than
+        <code>Library</code> - it carries <code>id</code>, <code>name</code>,
+        <code>description</code>, <code>isPublic</code>, and <code>tags</code>.
+        Call <code>get(response.id)</code> if you need the engagement fields
+        and <code>promptCount</code>.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: starter library",
+  description: "Created from the @prompty-tools/core docs site.",
+  isPublic: false,
+  tags: ["demo", "docs"],
+});
+console.log("created", created.id);
+
+await client.libraries.delete(created.id);
+console.log("cleaned up", created.id);
+
+return created;</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="update">update</h2>
+      <p class="method-sig">
+        <code>client.libraries.update(id: string, input: LibraryUpdateInput): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Update a library in place. <code>name</code> is required even if
+        unchanged - the server enforces a complete payload on PATCH.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create, update, then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: original",
+  description: "Original description.",
+  isPublic: false,
+});
+
+await client.libraries.update(created.id, {
+  name: "Docs demo: renamed",
+  description: "Updated description.",
+  isPublic: false,
+  tags: ["docs", "renamed"],
+});
+
+const detail = await client.libraries.get(created.id);
+
+await client.libraries.delete(created.id);
+
+return { id: created.id, name: detail.name, description: detail.description, tags: detail.tags };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="delete">delete</h2>
+      <p class="method-sig">
+        <code>client.libraries.delete(id: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Permanently delete a library. Member prompts are not deleted; only the
+        library record and its membership join rows are removed. Resolves with
+        <code>void</code>.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create then delete</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: ephemeral library",
+  isPublic: false,
+});
+
+await client.libraries.delete(created.id);
+
+try {
+  await client.libraries.get(created.id);
+  return { deleted: false, note: "Still found?" };
+} catch (err) {
+  if (err instanceof PromptyNotFoundError) {
+    return { deleted: true, status: err.status };
+  }
+  throw err;
+}</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="vote">vote</h2>
+      <p class="method-sig">
+        <code>client.libraries.vote(id: string, value: 1 | -1): Promise&lt;void&gt;</code>
+      </p>
+      <p>Upvote (<code>1</code>) or downvote (<code>-1</code>) a library.</p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote on your own library then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: vote target",
+  isPublic: false,
+});
+
+await client.libraries.vote(created.id, 1);
+const detail = await client.libraries.get(created.id);
+
+await client.libraries.delete(created.id);
+
+return { upvotes: detail.upvotes, downvotes: detail.downvotes, userVote: detail.userVote };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="unvote">unvote</h2>
+      <p class="method-sig">
+        <code>client.libraries.unvote(id: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Remove the caller's vote (sends <code>{ value: null }</code> to the
+        same endpoint). Idempotent - calling it without a prior vote is a
+        no-op.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Vote, then unvote, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: unvote",
+  isPublic: false,
+});
+
+await client.libraries.vote(created.id, 1);
+const afterVote = await client.libraries.get(created.id);
+
+await client.libraries.unvote(created.id);
+const afterUnvote = await client.libraries.get(created.id);
+
+await client.libraries.delete(created.id);
+
+return {
+  afterVote: { upvotes: afterVote.upvotes, userVote: afterVote.userVote },
+  afterUnvote: { upvotes: afterUnvote.upvotes, userVote: afterUnvote.userVote },
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="toggleFavorite">toggleFavorite</h2>
+      <p class="method-sig">
+        <code>client.libraries.toggleFavorite(id: string): Promise&lt;{ favorited: boolean }&gt;</code>
+      </p>
+      <p>
+        Flip the favorite state. The endpoint is a true toggle on the server -
+        there is no <em>set-favorite-to-X</em> form. The response tells you
+        the resulting state.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Toggle on, toggle off, then clean up</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const created = await client.libraries.create({
+  name: "Docs demo: favorite toggle",
+  isPublic: false,
+});
+
+const a = await client.libraries.toggleFavorite(created.id);
+const b = await client.libraries.toggleFavorite(created.id);
+
+await client.libraries.delete(created.id);
+
+return { firstToggle: a.favorited, secondToggle: b.favorited };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listPrompts">listPrompts</h2>
+      <p class="method-sig">
+        <code>client.libraries.listPrompts(id: string, params?: ListParams): Promise&lt;Page&lt;LibraryMemberPrompt&gt;&gt;</code>
+      </p>
+      <p>
+        Paginated list of the prompts that are members of a library. Accepts
+        the same five query params as the top-level
+        <code>list()</code> (<code>page</code>, <code>pageSize</code>,
+        <code>sort</code>, <code>scope</code>, <code>search</code>).
+      </p>
+      <p>
+        The returned <code>LibraryMemberPrompt</code> shape is similar to
+        <code>PromptSummary</code> but additionally includes
+        <code>isPublic</code>: members can be either public prompts or your
+        own private prompts.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Create a library, add a prompt, list members</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const prompt = await client.prompts.create({
+  title: "Docs demo: member",
+  task: "Member task.",
+  compiledPrompt: "Member compiled.",
+  isPublic: false,
+});
+
+const library = await client.libraries.create({
+  name: "Docs demo: members host",
+  isPublic: false,
+});
+
+await client.libraries.addPrompt(library.id, prompt.id);
+
+const page = await client.libraries.listPrompts(library.id, { pageSize: 12 });
+
+await client.libraries.delete(library.id);
+await client.prompts.delete(prompt.id);
+
+return {
+  total: page.total,
+  members: page.items.map((p) => ({ id: p.id, title: p.title, isPublic: p.isPublic })),
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="listAllPrompts">listAllPrompts</h2>
+      <p class="method-sig">
+        <code>client.libraries.listAllPrompts(id: string, params?: ListParams): AsyncIterable&lt;LibraryMemberPrompt&gt;</code>
+      </p>
+      <p>
+        Async iterator over every member prompt in a library. Walks pages
+        automatically; <code>break</code> stops further requests.
+      </p>
+
+      <div class="example">
+        <div class="example-toolbar">
+          <span class="label">Iterate members of a public library</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const page = await client.libraries.list({ scope: "public", pageSize: 6, sort: "most-favorited" });
+const first = page.items[0];
+if (!first) return { empty: true };
+
+const titles = [];
+for await (const member of client.libraries.listAllPrompts(first.id, { pageSize: 24 })) {
+  titles.push(member.title);
+  if (titles.length >= 24) break;
+}
+return { libraryId: first.id, libraryName: first.name, sampleTitles: titles };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="addPrompt">addPrompt</h2>
+      <p class="method-sig">
+        <code>client.libraries.addPrompt(id: string, promptId: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Add a prompt to a library. The prompt must be either public or owned
+        by the caller; adding the same prompt twice is rejected with a 400.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Add a prompt to a library</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const prompt = await client.prompts.create({
+  title: "Docs demo: addPrompt",
+  task: "Add me.",
+  compiledPrompt: "Add me.",
+  isPublic: false,
+});
+
+const library = await client.libraries.create({
+  name: "Docs demo: addPrompt host",
+  isPublic: false,
+});
+
+await client.libraries.addPrompt(library.id, prompt.id);
+const detail = await client.libraries.get(library.id);
+
+await client.libraries.delete(library.id);
+await client.prompts.delete(prompt.id);
+
+return { libraryId: library.id, promptCount: detail.promptCount };</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+
+      <h2 id="removePrompt">removePrompt</h2>
+      <p class="method-sig">
+        <code>client.libraries.removePrompt(id: string, promptId: string): Promise&lt;void&gt;</code>
+      </p>
+      <p>
+        Remove a prompt from a library. Sends the <code>promptId</code> as a
+        URL query parameter (not a body) - this is the only DELETE in the
+        package that uses a query argument. The server returns 400 if the
+        prompt is not currently a member.
+      </p>
+
+      <div class="example danger">
+        <div class="danger-note">⚠️ Writes to your account. Cleans up after itself.</div>
+        <div class="example-toolbar">
+          <span class="label">Add then remove a prompt</span>
+          <button class="run-button">Run</button>
+        </div>
+        <div class="example-code">
+          <pre><code class="language-javascript">const prompt = await client.prompts.create({
+  title: "Docs demo: removePrompt",
+  task: "Remove me.",
+  compiledPrompt: "Remove me.",
+  isPublic: false,
+});
+
+const library = await client.libraries.create({
+  name: "Docs demo: removePrompt host",
+  isPublic: false,
+});
+
+await client.libraries.addPrompt(library.id, prompt.id);
+const afterAdd = await client.libraries.get(library.id);
+
+await client.libraries.removePrompt(library.id, prompt.id);
+const afterRemove = await client.libraries.get(library.id);
+
+await client.libraries.delete(library.id);
+await client.prompts.delete(prompt.id);
+
+return {
+  afterAdd: afterAdd.promptCount,
+  afterRemove: afterRemove.promptCount,
+};</code></pre>
+        </div>
+        <div class="example-output"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="https://github.com/Equites-Digital/prompty-tools-core"
+          >GitHub</a
+        >
+        ·
+        <a href="https://www.npmjs.com/package/@prompty-tools/core">npm</a> ·
+        <a href="https://prompty.tools">prompty.tools</a>
+      </p>
+      <p>MIT © prompty.tools</p>
+    </footer>
+
+    <script type="module" src="../assets/runner.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </body>
+</html>

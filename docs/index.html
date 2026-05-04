@@ -24,10 +24,16 @@
           <a href="./concepts.html">Concepts</a>
           <a href="./api/prompts.html">Prompts</a>
           <a href="./api/personas.html">Personas</a>
-          <a href="./api/tones.html">Tones</a>
+          <span class="nav-group">
+            <a href="./api/tones.html">Tones</a>
+            <a href="./api/tone-collections.html" class="sub-nav-link">Collections</a>
+          </span>
           <a href="./api/outputs.html">Outputs</a>
-          <a href="./api/constraints.html">Constraints</a>
-          <a href="./api/collections.html">Collections</a>
+          <span class="nav-group">
+            <a href="./api/constraints.html">Constraints</a>
+            <a href="./api/constraint-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./api/libraries.html">Libraries</a>
         </nav>
       </div>
     </header>
@@ -84,10 +90,11 @@ return page.items.map((p) => ({ id: p.id, title: p.title, tags: p.tags }));</cod
       <h2 id="features">What's in the box</h2>
       <div class="feature-grid">
         <div>
-          <h3>Six resource namespaces</h3>
+          <h3>Five top-level resources</h3>
           <p>
-            Prompts, personas, tones, outputs, constraints, and collections -
-            covering all 46 v1 endpoints.
+            Prompts, personas, tones, outputs, and constraints. Tones and
+            constraints each expose a nested <code>collections</code>
+            sub-resource, mirroring the platform's URL hierarchy.
           </p>
         </div>
         <div>
@@ -142,10 +149,11 @@ return page.items.map((p) => ({ id: p.id, title: p.title, tags: p.tags }));</cod
           API reference for
           <a href="./api/prompts.html">prompts</a>,
           <a href="./api/personas.html">personas</a>,
-          <a href="./api/tones.html">tones</a>,
-          <a href="./api/outputs.html">outputs</a>,
-          <a href="./api/constraints.html">constraints</a>, and
-          <a href="./api/collections.html">collections</a>.
+          <a href="./api/tones.html">tones</a> (with
+          <a href="./api/tone-collections.html">tone collections</a>),
+          <a href="./api/outputs.html">outputs</a>, and
+          <a href="./api/constraints.html">constraints</a> (with
+          <a href="./api/constraint-collections.html">constraint collections</a>).
         </li>
       </ul>
 
