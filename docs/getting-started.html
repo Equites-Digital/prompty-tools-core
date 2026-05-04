@@ -20,10 +20,16 @@
           <a href="./concepts.html">Concepts</a>
           <a href="./api/prompts.html">Prompts</a>
           <a href="./api/personas.html">Personas</a>
-          <a href="./api/tones.html">Tones</a>
+          <span class="nav-group">
+            <a href="./api/tones.html">Tones</a>
+            <a href="./api/tone-collections.html" class="sub-nav-link">Collections</a>
+          </span>
           <a href="./api/outputs.html">Outputs</a>
-          <a href="./api/constraints.html">Constraints</a>
-          <a href="./api/collections.html">Collections</a>
+          <span class="nav-group">
+            <a href="./api/constraints.html">Constraints</a>
+            <a href="./api/constraint-collections.html" class="sub-nav-link">Collections</a>
+          </span>
+          <a href="./api/libraries.html">Libraries</a>
         </nav>
       </div>
     </header>
@@ -174,8 +180,8 @@ return page.items.map((p) => ({
           <tr>
             <td><code>baseUrl</code></td>
             <td><code>string</code></td>
-            <td><code>https://prompty.tools/api/v1</code></td>
-            <td>Useful for self-hosted or staging environments.</td>
+            <td><code>https://www.prompty.tools/api/v1</code></td>
+            <td>Useful for self-hosted or staging environments. Trailing slashes are normalized.</td>
           </tr>
           <tr>
             <td><code>fetch</code></td>
@@ -198,7 +204,7 @@ return page.items.map((p) => ({
             <td><code>timeoutMs</code></td>
             <td><code>number</code></td>
             <td><code>30000</code></td>
-            <td>Per-request abort. Use <code>0</code> to disable.</td>
+            <td>Per-request abort. Use <code>0</code> or <code>Infinity</code> to disable.</td>
           </tr>
           <tr>
             <td><code>maxRetries</code></td>

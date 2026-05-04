@@ -1,6 +1,7 @@
 import { normalizeConfig, type PromptyClientConfig } from "./config.js";
 import { createHttp } from "./internal/http.js";
 import { constraintsResource, type ConstraintsResource } from "./resources/constraints.js";
+import { librariesResource, type LibrariesResource } from "./resources/libraries.js";
 import { outputsResource, type OutputsResource } from "./resources/outputs.js";
 import { personasResource, type PersonasResource } from "./resources/personas.js";
 import { promptsResource, type PromptsResource } from "./resources/prompts.js";
@@ -17,6 +18,7 @@ export interface PromptyClient {
   readonly tones: TonesResource;
   readonly outputs: OutputsResource;
   readonly constraints: ConstraintsResource;
+  readonly libraries: LibrariesResource;
 }
 
 /**
@@ -39,5 +41,6 @@ export function createPromptyClient(config: PromptyClientConfig): PromptyClient 
     tones: tonesResource(http),
     outputs: outputsResource(http),
     constraints: constraintsResource(http),
+    libraries: librariesResource(http),
   };
 }

@@ -65,3 +65,12 @@ export type {
   ToneCollectionItem,
   ConstraintCollectionItem,
 } from "./collection.js";
+
+export type {
+  Library,
+  LibrarySummary,
+  LibraryMemberPrompt,
+  LibraryCreateInput,
+  LibraryUpdateInput,
+  LibraryCreateResponse,
+} from "./library.js";

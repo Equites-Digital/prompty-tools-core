@@ -162,6 +162,22 @@ td code {
   text-decoration: none;
 }
 
+.site-nav .nav-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.site-nav a.sub-nav-link {
+  font-size: 0.82rem;
+}
+
+.site-nav a.sub-nav-link::before {
+  content: "›";
+  margin-right: 0.25rem;
+  opacity: 0.55;
+}
+
 /* API key controls */
 .api-key-bar {
   border-bottom: 1px solid var(--border);

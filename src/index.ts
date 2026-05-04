@@ -36,6 +36,7 @@ export type { OutputsResource } from "./resources/outputs.js";
 export type { ConstraintsResource } from "./resources/constraints.js";
 export type { ToneCollectionsResource } from "./resources/tone-collections.js";
 export type { ConstraintCollectionsResource } from "./resources/constraint-collections.js";
+export type { LibrariesResource } from "./resources/libraries.js";
 
 export type {
   ApiPageSize,
@@ -51,6 +52,12 @@ export type {
   ConstraintSummary,
   ConstraintUpdateInput,
   EngagementFields,
+  Library,
+  LibraryCreateInput,
+  LibraryCreateResponse,
+  LibraryMemberPrompt,
+  LibrarySummary,
+  LibraryUpdateInput,
   ListParams,
   Output,
   OutputCreateInput,
