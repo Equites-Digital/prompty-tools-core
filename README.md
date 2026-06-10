@@ -116,6 +116,7 @@ import {
   PromptyRateLimitError,
   PromptyNotFoundError,
   PromptyAuthError,
+  PromptyForbiddenError,
 } from "@prompty-tools/core";
 
 try {
@@ -127,6 +128,8 @@ try {
     console.log("rate limited");
   } else if (err instanceof PromptyAuthError) {
     console.log("bad API key");
+  } else if (err instanceof PromptyForbiddenError) {
+    console.log("action not permitted:", err.message);
   } else {
     throw err;
   }

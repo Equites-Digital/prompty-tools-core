@@ -63,6 +63,11 @@ export class PromptyAuthError extends PromptyHttpError {
   override readonly name = "PromptyAuthError";
 }
 
+/** 403 - the authenticated user is not permitted to perform this action. */
+export class PromptyForbiddenError extends PromptyHttpError {
+  override readonly name = "PromptyForbiddenError";
+}
+
 /** 400 - input failed server-side validation. */
 export class PromptyValidationError extends PromptyHttpError {
   override readonly name = "PromptyValidationError";
