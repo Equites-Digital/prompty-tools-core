@@ -78,12 +78,7 @@ export interface PromptVersion {
 export interface PromptCreateInput {
   title: string;
   task: string;
-  compiledPrompt: string;
   description?: string;
-  persona?: string;
-  output?: string;
-  tones?: readonly string[];
-  constraints?: readonly string[];
   personaVersionId?: string;
   outputId?: string;
   toneIds?: readonly string[];
@@ -97,14 +92,9 @@ export interface PromptCreateInput {
 export interface PromptUpdateInput {
   title: string;
   task: string;
-  compiledPrompt: string;
   /** Required: short description of what changed in this version. */
   changelog: string;
   description?: string;
-  persona?: string;
-  output?: string;
-  tones?: readonly string[];
-  constraints?: readonly string[];
   personaVersionId?: string;
   outputId?: string;
   toneIds?: readonly string[];

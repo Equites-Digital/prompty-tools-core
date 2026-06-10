@@ -56,6 +56,40 @@ The client exposes one namespace per resource:
 
 All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members. Libraries additionally support `.listPrompts(id)`, `.listAllPrompts(id)`, `.addPrompt(id, promptId)`, and `.removePrompt(id, promptId)` to manage their members.
 
+### Creating and updating prompts
+
+The server compiles the full prompt text from the `task` field and the referenced building blocks. Free-text content fields (`compiledPrompt`, `persona`, `output`, `tones`, `constraints`) are **not** accepted — use the corresponding ID fields instead.
+
+```ts
+// Minimal prompt — just a task
+const created = await client.prompts.create({
+  title: "Summariser",
+  task: "Summarise the following text in three bullet points.",
+});
+
+// With building block references — the server compiles them into the prompt
+const created = await client.prompts.create({
+  title: "Formal JSON summariser",
+  task: "Summarise the following text in three bullet points.",
+  personaVersionId: "pv_abc123",
+  outputId: "out_xyz789",
+  toneIds: ["tone_formal", "tone_concise"],
+  constraintIds: ["con_max100words"],
+});
+
+// Read back the server-compiled prompt text
+const prompt = await client.prompts.get(created.id);
+console.log(prompt.compiledPrompt);
+
+// Update creates a new version — changelog is required
+await client.prompts.update(created.id, {
+  title: "Formal JSON summariser v2",
+  task: "Summarise the following text in two bullet points.",
+  outputId: "out_xyz789",
+  changelog: "Reduced bullet count to two",
+});
+```
+
 ```ts
 const myToneCollections = await client.tones.collections.list({ scope: "mine" });
 const collection = await client.tones.collections.create({

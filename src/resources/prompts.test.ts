@@ -71,14 +71,37 @@ describe("promptsResource", () => {
     const result = await resource.create({
       title: "hello",
       task: "do thing",
-      compiledPrompt: "...",
     });
     expect(result.id).toBe("p1");
     expect(fetchImpl.calls[0]!.method).toBe("POST");
     expect(JSON.parse(fetchImpl.calls[0]!.body!)).toEqual({
       title: "hello",
       task: "do thing",
-      compiledPrompt: "...",
+    });
+  });
+
+  it("create() sends optional reference IDs when provided", async () => {
+    const { resource, fetchImpl } = buildResource(
+      makeJsonResponse(
+        { id: "p2", userId: "u1", isPublic: true, username: null, createdAt: "", updatedAt: "" },
+        201,
+      ),
+    );
+    await resource.create({
+      title: "with refs",
+      task: "do thing",
+      personaVersionId: "pv1",
+      outputId: "o1",
+      toneIds: ["t1"],
+      constraintIds: ["c1"],
+    });
+    expect(JSON.parse(fetchImpl.calls[0]!.body!)).toEqual({
+      title: "with refs",
+      task: "do thing",
+      personaVersionId: "pv1",
+      outputId: "o1",
+      toneIds: ["t1"],
+      constraintIds: ["c1"],
     });
   });
 
@@ -87,7 +110,6 @@ describe("promptsResource", () => {
     const result = await resource.update("p1", {
       title: "new",
       task: "new task",
-      compiledPrompt: "...",
       changelog: "fix",
     });
     expect(result).toBeUndefined();
