@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-10
+
+### Changed
+
+- **Breaking:** `PromptCreateInput` no longer accepts `compiledPrompt`, `persona`,
+  `output`, `tones`, or `constraints`. The API now compiles the prompt
+  server-side from the `task` field and the referenced building block IDs
+  (`personaVersionId`, `outputId`, `toneIds`, `constraintIds`). Passing those
+  free-text fields had no effect server-side as of source commit
+  `a8171c1292cc` and would have silently been ignored.
+- **Breaking:** `PromptUpdateInput` removes the same set of fields
+  (`compiledPrompt`, `persona`, `output`, `tones`, `constraints`) for the same
+  reason. `changelog` remains required.
+- Required fields for `POST /prompts` are now `title` and `task` only
+  (previously also required `compiledPrompt`).
+- Required fields for `PATCH /prompts/{id}` are now `title`, `task`, and
+  `changelog` (previously also required `compiledPrompt`).
+
+### Fixed
+
+- Inaccessible or missing building block references (`toneIds`, `constraintIds`,
+  `outputId`, `personaVersionId`) now correctly surface as `PromptyNotFoundError`
+  (HTTP 404) rather than the previous 403, matching the updated server behaviour.
+
 ## [0.3.0] - 2026-05-05
 
 ### Added
