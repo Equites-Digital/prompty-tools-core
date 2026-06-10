@@ -154,6 +154,7 @@ return titles;</code></pre>
 └── PromptyHttpError           // base for non-2xx responses
     ├── PromptyValidationError // 400
     ├── PromptyAuthError       // 401
+    ├── PromptyForbiddenError  // 403 (e.g. voting on your own content)
     ├── PromptyNotFoundError   // 404
     ├── PromptyRateLimitError  // 429 (carries optional retryAfter)
     └── PromptyServerError     // 5xx</code></pre>

@@ -2,6 +2,7 @@ import type { NormalizedConfig, RequestContext } from "../config.js";
 import {
   PromptyAuthError,
   PromptyError,
+  PromptyForbiddenError,
   PromptyHttpError,
   PromptyNetworkError,
   PromptyNotFoundError,
@@ -243,6 +244,8 @@ async function toHttpError(response: Response): Promise<PromptyHttpError> {
       return new PromptyValidationError(message, 400, base);
     case 401:
       return new PromptyAuthError(message, 401, base);
+    case 403:
+      return new PromptyForbiddenError(message, 403, base);
     case 404:
       return new PromptyNotFoundError(message, 404, base);
     case 429: {

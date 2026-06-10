@@ -4,6 +4,7 @@ import {
   PromptyAuthError,
   PromptyConfigError,
   PromptyError,
+  PromptyForbiddenError,
   PromptyHttpError,
   PromptyNetworkError,
   PromptyNotFoundError,
@@ -113,6 +114,16 @@ describe("PromptyValidationError", () => {
     expect(err.name).toBe("PromptyValidationError");
     expect(err.status).toBe(400);
     expect(err).toBeInstanceOf(PromptyHttpError);
+  });
+});
+
+describe("PromptyForbiddenError", () => {
+  it("is a 403 PromptyHttpError subclass", () => {
+    const err = new PromptyForbiddenError("You cannot vote on your own content", 403);
+    expect(err.name).toBe("PromptyForbiddenError");
+    expect(err.status).toBe(403);
+    expect(err).toBeInstanceOf(PromptyHttpError);
+    expect(err).toBeInstanceOf(PromptyError);
   });
 });
 

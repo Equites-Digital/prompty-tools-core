@@ -20,6 +20,7 @@ export {
   PromptyAuthError,
   PromptyConfigError,
   PromptyError,
+  PromptyForbiddenError,
   PromptyHttpError,
   PromptyNetworkError,
   PromptyNotFoundError,

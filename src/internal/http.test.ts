@@ -4,6 +4,7 @@ import { normalizeConfig, type NormalizedConfig } from "../config.js";
 import {
   PromptyAuthError,
   PromptyError,
+  PromptyForbiddenError,
   PromptyHttpError,
   PromptyNetworkError,
   PromptyNotFoundError,
@@ -159,6 +160,19 @@ describe("http.request", () => {
       const fetchImpl = createMockFetch(makeErrorResponse("nope", 401));
       const http = createHttp(makeConfig({ fetch: fetchImpl as unknown as typeof fetch }));
       await expect(http.request("GET", "/x")).rejects.toBeInstanceOf(PromptyAuthError);
+    });
+
+    it("maps 403 to PromptyForbiddenError", async () => {
+      const fetchImpl = createMockFetch(
+        makeErrorResponse("You cannot vote on your own content", 403),
+      );
+      const http = createHttp(makeConfig({ fetch: fetchImpl as unknown as typeof fetch }));
+      const err = await http.request("PUT", "/prompts/p1/vote").catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(PromptyForbiddenError);
+      expect((err as PromptyForbiddenError).status).toBe(403);
+      expect((err as PromptyForbiddenError).message).toBe(
+        "You cannot vote on your own content",
+      );
     });
 
     it("maps 404 to PromptyNotFoundError", async () => {
