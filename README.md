@@ -53,8 +53,9 @@ The client exposes one namespace per resource:
 | `client.constraints`               | Constraints                                                       |
 | `client.constraints.collections`   | Constraint collections (groups of constraints)                    |
 | `client.libraries`                 | Libraries (groups of prompts)                                     |
+| `client.queues`                    | Queues (ordered lists of prompts for headless agent processing)   |
 
-All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members. Libraries additionally support `.listPrompts(id)`, `.listAllPrompts(id)`, `.addPrompt(id, promptId)`, and `.removePrompt(id, promptId)` to manage their members.
+All resources support `.list()`, `.get(id)`, `.create(input)`, `.update(id, input)`, `.delete(id)`, `.vote(id, 1 | -1)`, `.unvote(id)`, `.toggleFavorite(id)`. Prompts and personas additionally support `.setVisibility(id, isPublic)`, `.listVersions(id)`, and `.getVersion(id, versionId)`. Collections additionally support `.listItems(id)` and `.setItems(id, itemIds)` to manage their members. Libraries additionally support `.listPrompts(id)`, `.listAllPrompts(id)`, `.addPrompt(id, promptId)`, and `.removePrompt(id, promptId)` to manage their members. Queues support `.listItems(id)`, `.listAllItems(id)`, `.addItem(id, promptId)`, `.dequeue(id)`, `.markItem(id, itemId, input)`, and `.removeItem(id, itemId)`.
 
 ### Creating and updating prompts
 

@@ -74,3 +74,16 @@ export type {
   LibraryUpdateInput,
   LibraryCreateResponse,
 } from "./library.js";
+
+export type {
+  QueueItemStatus,
+  TerminalQueueItemStatus,
+  QueueSummary,
+  QueueItem,
+  DequeuedItem,
+  QueueCreateInput,
+  QueueCreateResponse,
+  MarkQueueItemInput,
+  QueueListParams,
+  QueueItemListParams,
+} from "./queue.js";
