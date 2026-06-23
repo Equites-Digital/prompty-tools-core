@@ -91,7 +91,14 @@ export async function* iteratePages<T>(
   path: string,
   params: ListParams | undefined,
 ): AsyncGenerator<T> {
-  let page = await listPaged<T>(http, envelopeKey, path, params);
+  yield* walkPages(await listPaged<T>(http, envelopeKey, path, params));
+}
+
+/**
+ * Walks every page starting from `firstPage`, yielding each item in order.
+ */
+export async function* walkPages<T>(firstPage: Page<T>): AsyncGenerator<T> {
+  let page = firstPage;
   while (true) {
     for (const item of page.items) {
       yield item;

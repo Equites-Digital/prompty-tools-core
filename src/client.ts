@@ -5,6 +5,7 @@ import { librariesResource, type LibrariesResource } from "./resources/libraries
 import { outputsResource, type OutputsResource } from "./resources/outputs.js";
 import { personasResource, type PersonasResource } from "./resources/personas.js";
 import { promptsResource, type PromptsResource } from "./resources/prompts.js";
+import { queuesResource, type QueuesResource } from "./resources/queues.js";
 import { tonesResource, type TonesResource } from "./resources/tones.js";
 
 /**
@@ -19,6 +20,7 @@ export interface PromptyClient {
   readonly outputs: OutputsResource;
   readonly constraints: ConstraintsResource;
   readonly libraries: LibrariesResource;
+  readonly queues: QueuesResource;
 }
 
 /**
@@ -42,5 +44,6 @@ export function createPromptyClient(config: PromptyClientConfig): PromptyClient 
     outputs: outputsResource(http),
     constraints: constraintsResource(http),
     libraries: librariesResource(http),
+    queues: queuesResource(http),
   };
 }

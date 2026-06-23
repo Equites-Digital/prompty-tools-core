@@ -38,6 +38,7 @@ export type { ConstraintsResource } from "./resources/constraints.js";
 export type { ToneCollectionsResource } from "./resources/tone-collections.js";
 export type { ConstraintCollectionsResource } from "./resources/constraint-collections.js";
 export type { LibrariesResource } from "./resources/libraries.js";
+export type { QueuesResource } from "./resources/queues.js";
 
 export type {
   ApiPageSize,
@@ -92,4 +93,14 @@ export type {
   VersionListParams,
   VersionPageSize,
   VoteValue,
+  DequeuedItem,
+  MarkQueueItemInput,
+  QueueCreateInput,
+  QueueCreateResponse,
+  QueueItem,
+  QueueItemListParams,
+  QueueItemStatus,
+  QueueListParams,
+  QueueSummary,
+  TerminalQueueItemStatus,
 } from "./types/index.js";
