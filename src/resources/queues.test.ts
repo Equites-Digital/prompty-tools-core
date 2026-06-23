@@ -86,6 +86,18 @@ describe("queuesResource", () => {
       const { resource } = buildResource(makeErrorResponse("not found", 404));
       await expect(resource.list()).rejects.toBeInstanceOf(PromptyNotFoundError);
     });
+
+    it("forwards an abort signal to the request", async () => {
+      const controller = new AbortController();
+      controller.abort();
+      let abortedSeen: boolean | undefined;
+      const { resource } = buildResource((req) => {
+        abortedSeen = req.signal.aborted;
+        return makeJsonResponse({ queues: [], total: 0 });
+      });
+      await resource.list({ signal: controller.signal });
+      expect(abortedSeen).toBe(true);
+    });
   });
 
   describe("listAll()", () => {
@@ -160,6 +172,18 @@ describe("queuesResource", () => {
       );
       await resource.listItems("q1");
       expect(fetchImpl.calls[0]!.url).not.toContain("status=");
+    });
+
+    it("forwards an abort signal to the request", async () => {
+      const controller = new AbortController();
+      controller.abort();
+      let abortedSeen: boolean | undefined;
+      const { resource } = buildResource((req) => {
+        abortedSeen = req.signal.aborted;
+        return makeJsonResponse({ items: [], total: 0 });
+      });
+      await resource.listItems("q1", { signal: controller.signal });
+      expect(abortedSeen).toBe(true);
     });
   });
 
