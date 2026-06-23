@@ -98,6 +98,7 @@ export type {
   QueueCreateInput,
   QueueCreateResponse,
   QueueItem,
+  QueueItemBase,
   QueueItemListParams,
   QueueItemStatus,
   QueueListParams,

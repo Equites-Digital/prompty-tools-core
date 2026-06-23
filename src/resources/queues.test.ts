@@ -28,16 +28,20 @@ const sampleQueue = {
   updatedAt: "2024-01-01T00:00:00.000Z",
 };
 
-const sampleItem = {
+const sampleItemBase = {
   id: "i1",
   queueId: "q1",
   promptId: "p1",
   status: "pending",
   notes: "",
-  promptTitle: "My Prompt",
-  currentVersion: 1,
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
+};
+
+const sampleItem = {
+  ...sampleItemBase,
+  promptTitle: "My Prompt",
+  currentVersion: 1,
 };
 
 describe("queuesResource", () => {
@@ -204,17 +208,19 @@ describe("queuesResource", () => {
   describe("addItem()", () => {
     it("POSTs promptId and returns the created item", async () => {
       const { resource, fetchImpl } = buildResource(
-        makeJsonResponse(sampleItem, 201),
+        makeJsonResponse(sampleItemBase, 201),
       );
       const result = await resource.addItem("q1", "p1");
       expect(result.id).toBe("i1");
+      expect(result).not.toHaveProperty("promptTitle");
+      expect(result).not.toHaveProperty("currentVersion");
       expect(fetchImpl.calls[0]!.method).toBe("POST");
       expect(fetchImpl.calls[0]!.url).toMatch(/\/queues\/q1\/items$/);
       expect(JSON.parse(fetchImpl.calls[0]!.body!)).toEqual({ promptId: "p1" });
     });
 
     it("URL-encodes the queue id", async () => {
-      const { resource, fetchImpl } = buildResource(makeJsonResponse(sampleItem, 201));
+      const { resource, fetchImpl } = buildResource(makeJsonResponse(sampleItemBase, 201));
       await resource.addItem("q/1", "p1");
       expect(fetchImpl.calls[0]!.url).toContain("/queues/q%2F1/items");
     });

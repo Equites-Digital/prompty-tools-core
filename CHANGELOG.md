@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-06-23
+
+### Fixed
+
+- `queues.addItem()` now correctly returns `QueueItemBase` instead of `QueueItem`.
+  The `POST /queues/{id}/items` endpoint does not join prompt tables and therefore
+  never returns `promptTitle` or `currentVersion`; the previous type declaration
+  was incorrect and those fields were always `undefined` at runtime. Consumers that
+  need the prompt details after adding an item should call `queues.listItems()`.
+- Added missing `QueueItemBase` export — the type is now part of the public API
+  surface alongside `QueueItem`.
+- Backfilled the missing CHANGELOG entry for v0.5.0 (see below).
+
+Source commit: 713a26214a627d72ea8ab47fd6333d5da76a6d95
+
+## [0.5.0] - 2026-06-23
+
+### Added
+
+- First-class `client.queues` namespace covering all documented Queues endpoints:
+  `list`, `listAll`, `create`, `listItems`, `listAllItems`, `addItem`, `dequeue`,
+  `markItem`, `removeItem`. Mirrors the platform's `/api/v1/queues` and
+  `/api/v1/queues/{id}/items` endpoint families.
+- New types: `QueueSummary`, `QueueItem`, `DequeuedItem`, `QueueCreateInput`,
+  `QueueCreateResponse`, `MarkQueueItemInput`, `QueueListParams`,
+  `QueueItemListParams`, `QueueItemStatus`, `TerminalQueueItemStatus`, and
+  `QueuesResource`.
+- `AbortSignal` forwarding on `queues.list()` and `queues.listItems()` via the
+  optional `signal` parameter in `QueueListParams` / `QueueItemListParams`.
+
+Source commit: 3e20ebd
+
 ## [0.4.0] - 2026-06-10
 
 ### Changed

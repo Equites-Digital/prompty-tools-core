@@ -79,6 +79,7 @@ export type {
   QueueItemStatus,
   TerminalQueueItemStatus,
   QueueSummary,
+  QueueItemBase,
   QueueItem,
   DequeuedItem,
   QueueCreateInput,
