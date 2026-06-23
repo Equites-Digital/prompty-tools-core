@@ -8,6 +8,7 @@ import type {
   QueueCreateInput,
   QueueCreateResponse,
   QueueItem,
+  QueueItemBase,
   QueueItemListParams,
   QueueListParams,
   QueueSummary,
@@ -22,7 +23,7 @@ export interface QueuesResource {
   create(input: QueueCreateInput): Promise<QueueCreateResponse>;
   listItems(queueId: string, params?: QueueItemListParams): Promise<Page<QueueItem>>;
   listAllItems(queueId: string, params?: QueueItemListParams): AsyncIterable<QueueItem>;
-  addItem(queueId: string, promptId: string): Promise<QueueItem>;
+  addItem(queueId: string, promptId: string): Promise<QueueItemBase>;
   dequeue(queueId: string): Promise<DequeuedItem | null>;
   markItem(queueId: string, itemId: string, input: MarkQueueItemInput): Promise<void>;
   removeItem(queueId: string, itemId: string): Promise<void>;
@@ -76,7 +77,7 @@ export function queuesResource(http: Http): QueuesResource {
       yield* walkPages(await fetchQueueItemPage(http, queueId, params, params?.page ?? 1));
     },
     addItem: (queueId, promptId) =>
-      http.request<QueueItem>(
+      http.request<QueueItemBase>(
         "POST",
         `/queues/${encodeURIComponent(queueId)}/items`,
         { body: { promptId } },

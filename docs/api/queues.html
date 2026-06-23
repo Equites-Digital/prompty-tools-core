@@ -231,11 +231,14 @@ return { id: queue.id, name: queue.name };</code></pre>
 
       <h2 id="addItem">addItem</h2>
       <p class="method-sig">
-        <code>client.queues.addItem(queueId: string, promptId: string): Promise&lt;QueueItem&gt;</code>
+        <code>client.queues.addItem(queueId: string, promptId: string): Promise&lt;QueueItemBase&gt;</code>
       </p>
       <p>
         Add a prompt to the queue. The item starts with status <code>"pending"</code>.
         The prompt must be accessible to the authenticated user.
+        Returns a <code>QueueItemBase</code> — the creation endpoint does not join
+        prompt tables, so <code>promptTitle</code> and <code>currentVersion</code> are
+        absent. Call <code>listItems</code> to retrieve the full item with prompt details.
         Throws <code>PromptyNotFoundError</code> on 404.
       </p>
 
@@ -313,16 +316,21 @@ interface QueueSummary {
   updatedAt: string; // ISO 8601
 }
 
-interface QueueItem {
+/** Returned by addItem — base fields only (no prompt join). */
+interface QueueItemBase {
   id: string;
   queueId: string;
   promptId: string;
   status: QueueItemStatus;
   notes: string;
-  promptTitle: string;
-  currentVersion: number;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+}
+
+/** Returned by listItems / listAllItems — includes prompt details joined server-side. */
+interface QueueItem extends QueueItemBase {
+  promptTitle: string;
+  currentVersion: number;
 }
 
 interface DequeuedItem extends QueueItem {

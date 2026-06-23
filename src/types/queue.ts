@@ -16,18 +16,23 @@ export interface QueueSummary {
   updatedAt: string;
 }
 
-export interface QueueItem {
+/** Fields returned by the queue item creation endpoint (`POST /queues/{id}/items`). */
+export interface QueueItemBase {
   id: string;
   queueId: string;
   promptId: string;
   status: QueueItemStatus;
   notes: string;
-  promptTitle: string;
-  currentVersion: number;
   /** ISO 8601 UTC date string. */
   createdAt: string;
   /** ISO 8601 UTC date string. */
   updatedAt: string;
+}
+
+/** Full queue item as returned by list and dequeue endpoints — includes prompt details joined server-side. */
+export interface QueueItem extends QueueItemBase {
+  promptTitle: string;
+  currentVersion: number;
 }
 
 export interface DequeuedItem extends QueueItem {
